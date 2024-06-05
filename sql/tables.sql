@@ -67,12 +67,13 @@ CREATE TABLE Registrar (
     CHECK (DataLicenziamento IS NULL OR DataAssunzione < DataLicenziamento)
 );
 
+-- Tipo = 1 se è permanente | Tipo = 0 se è temporanea
 CREATE TABLE Mostra (
     Nome VARCHAR(255) PRIMARY KEY,
     Prezzo DECIMAL(10,2),
     Descrizione TEXT,
     VotoMedio DECIMAL(3,2),
-    Tipo VARCHAR(255),
+    Tipo Boolean,
     Curatore CHAR(16),
     FOREIGN KEY (Curatore) REFERENCES Curatore(CF)
 );
@@ -240,7 +241,11 @@ CREATE TABLE Prestito (
     FOREIGN KEY (ID_OperaEsterna) REFERENCES OperaEsterna(ID),
     FOREIGN KEY (Ente) REFERENCES Ente(Telefono),
     FOREIGN KEY (Registrar) REFERENCES Registrar(CF),
-    CHECK (DataInizio < DataFine)
+    CHECK (DataInizio < DataFine),
+	CHECK (
+        (ID_OperaInterna IS NOT NULL AND ID_OperaEsterna IS NULL)
+        OR (ID_OperaInterna IS NULL AND ID_OperaEsterna IS NOT NULL)
+    )
 );
 
 CREATE TABLE Visitatore (
