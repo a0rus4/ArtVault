@@ -219,7 +219,7 @@ CREATE TABLE Restauro (
     FOREIGN KEY (OperaID) REFERENCES OperaInterna(ID),
     FOREIGN KEY (RestauratoreID) REFERENCES Restauratore(CF),
     FOREIGN KEY (LaboratorioID) REFERENCES Laboratorio(Specializzazione),
-    CHECK (DataFine IS NULL OR DataFine > DataInizio)
+    CHECK (DataFine IS NULL OR (DataFine > DataInizio AND DataFine < CURRENT_DATE)
 );
 
 CREATE TABLE Ente (

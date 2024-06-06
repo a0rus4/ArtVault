@@ -68,6 +68,7 @@ EXECUTE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi();
 -- Inoltre, se è presente un opera attualmente in restauro, non si possono inserire/modificare 
 --     restauri che iniziano o finiscono successivamente al restauro attuale
 -- Trigger che verifica la specializzazione di un restauratore che vuole restaurare un opera
+-- Trigger che gestisce la mostra temporanea (rimozione e reinserimento automatico) dell'opera in restauro
 CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -96,6 +97,8 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'Il restauratore non è specializzato nell''opera da restaurare.';
     END IF;
+	
+	-- 
 
     RETURN NEW;
 END;
