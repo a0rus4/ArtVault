@@ -1,4 +1,6 @@
--- Vincolo 4
+-- Il Vincolo 4 è verificato tramite un check nella tabella "Piano"
+
+-- Vincolo 5
 -- Trigger che vieta la sovrapposizione tra un evento e una mostra in una stessa sala e periodo temporale
 CREATE OR REPLACE FUNCTION trigger_no_evento_durante_mostra()
 RETURNS TRIGGER AS $$
@@ -21,11 +23,27 @@ BEFORE INSERT OR UPDATE ON Evento
 FOR EACH ROW
 EXECUTE FUNCTION trigger_no_evento_durante_mostra();
 
--- Vincolo 4
--- Trigger per vietare la sovrapposizione tra una mostra temporanea e un evento in una stessa sala e periodo temporale
-CREATE OR REPLACE FUNCTION trigger_no_mostra_temporanea_durante_evento()
+-- Vincolo 5 & 15
+-- Trigger per verificare la sovrapposizione di mostre temporanee e eventi nella stessa sala e periodo temporale
+-- Trigger per verificare la presenza di mostre temporanee uguali nello stesso periodo temporale
+CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi()
 RETURNS TRIGGER AS $$
 BEGIN
+    -- Verifica sovrapposizione mostre temporanee con lo stesso nome
+    IF EXISTS (
+        SELECT 1
+        FROM MostraTemporanea
+        WHERE Nome = NEW.Nome
+        AND (
+            (NEW.DataInizio >= DataInizio AND NEW.DataInizio < DataFine) OR
+            (NEW.DataFine > DataInizio AND NEW.DataFine <= DataFine) OR
+            (NEW.DataInizio <= DataInizio AND NEW.DataFine >= DataFine)
+        )
+    ) THEN
+        RAISE EXCEPTION 'È già presente una mostra temporanea con lo stesso nome in questo periodo temporale.';
+    END IF;
+
+    -- Verifica sovrapposizione con eventi nella stessa sala
     IF EXISTS (
         SELECT 1
         FROM Evento E
@@ -35,21 +53,22 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'La mostra temporanea non può essere aggiunta perché si sovrappone ad un evento già programmato nella sala.';
     END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerNoMostraTemporaneaDuranteEvento
+CREATE TRIGGER TriggerNoSovrapposizioneMostreEdEventi
 BEFORE INSERT OR UPDATE ON MostraTemporanea
 FOR EACH ROW
-EXECUTE FUNCTION trigger_no_mostra_temporanea_durante_evento();
+EXECUTE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi();
 
--- Vincolo 5
--- Vincolo 6
+-- Vincolo 6 & 7 & 9
 -- Trigger che vieta che le date di un restauro si sovrappongano ad altri restauri
 -- Inoltre, se è presente un opera attualmente in restauro, non si possono inserire/modificare 
 --     restauri che iniziano o finiscono successivamente al restauro attuale
-CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_restauri()
+-- Trigger che verifica la specializzazione di un restauratore che vuole restaurare un opera
+CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Verifica sovrapposizione con altri restauri
@@ -59,22 +78,37 @@ BEGIN
         WHERE R2.OperaID = NEW.OperaID
         AND R2.ID <> NEW.ID
         AND (
-			(R2.DataFine IS NULL AND (NEW.DataInizio >= R2.DataInizio OR NEW.DataFine >= R2.DataInizio)) OR
-			(NEW.DataInizio < R2.DataFine AND NEW.DataFine > R2.DataInizio)
-		)
+            (R2.DataFine IS NULL AND (NEW.DataInizio >= R2.DataInizio OR NEW.DataFine >= R2.DataInizio)) OR
+            (NEW.DataInizio < R2.DataFine AND NEW.DataFine > R2.DataInizio)
+        )
     ) THEN
         RAISE EXCEPTION 'Le date di restauro si sovrappongono con un altro restauro esistente.';
     END IF;
+
+    -- Verifica la specializzazione del restauratore
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Restauratore
+        WHERE Restauratore.ID = NEW.RestauratoreID
+        AND Restauratore.Specializzazione = (
+            SELECT Specializzazione FROM OperaInterna WHERE ID = NEW.OperaID
+        )
+    ) THEN
+        RAISE EXCEPTION 'Il restauratore non è specializzato nell''opera da restaurare.';
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerNoSovrapposizioneRestauri
+-- Trigger combinato per impedire la sovrapposizione delle date di restauro e verificare la specializzazione del restauratore
+CREATE TRIGGER TriggerNoSovrapposizioneESpecializzazioneRestauro
 BEFORE INSERT OR UPDATE ON Restauro
 FOR EACH ROW
-EXECUTE FUNCTION trigger_no_sovrapposizione_restauri();
+EXECUTE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro();
 
--- Vincolo 7
+
+-- Vincolo 8
 -- Trigger che vieta l'inserimento di un opera in una mostra se l'opera è in restauro
 CREATE OR REPLACE FUNCTION trigger_no_opera_in_restauro_in_mostra()
 RETURNS TRIGGER AS $$
@@ -96,31 +130,7 @@ BEFORE INSERT OR UPDATE ON OperaInterna
 FOR EACH ROW
 EXECUTE FUNCTION trigger_no_opera_in_restauro_in_mostra();
 
--- Vincolo 8
--- Trigger che verifica la specializzazione di un restauratore che vuole restaurare un opera
-CREATE OR REPLACE FUNCTION trigger_check_restauratore_specializzazione()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM Restauratore
-        WHERE Restauratore.ID = NEW.RestauratoreID
-        AND Restauratore.Specializzazione = (
-            SELECT Specializzazione FROM OperaInterna WHERE ID = NEW.OperaID
-        )
-    ) THEN
-        RAISE EXCEPTION 'Il restauratore non è specializzato nell''opera da restaurare.';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER TriggerCheckRestauratoreSpecializzazione
-BEFORE INSERT OR UPDATE ON Restauro
-FOR EACH ROW
-EXECUTE FUNCTION trigger_check_restauratore_specializzazione();
-
--- Vincolo 9
+-- Vincolo 10
 -- Trigger per verificare la specializzazione del restauratore assegnato ad un laboratorio
 CREATE OR REPLACE FUNCTION trigger_check_specializzazione_restauratore()
 RETURNS TRIGGER AS $$
@@ -144,56 +154,9 @@ BEFORE INSERT OR UPDATE ON Restauratore
 FOR EACH ROW
 EXECUTE FUNCTION trigger_check_specializzazione_restauratore();
 
--- Vincolo 10
--- Trigger che vieta il prestito di un'opera interna se è esposta in una mostra permanente
-CREATE OR REPLACE FUNCTION trigger_no_prestito_se_in_mostra()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM OperaInterna
-        WHERE ID = NEW.ID_OperaInterna
-        AND Mostra IS NOT NULL
-    ) THEN
-        RAISE EXCEPTION 'L''opera è attualmente esposta in una mostra permanente e non può essere prestata.';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- Il Vincolo 13 è verificato tramite un check nella tabella "Recensione"
 
-CREATE TRIGGER TriggerNoPrestitoSeInMostra
-BEFORE INSERT OR UPDATE ON Prestito
-FOR EACH ROW
-EXECUTE FUNCTION trigger_no_prestito_se_in_mostra();
-
--- Vincolo 11
--- Trigger per impedire il prestito di un'opera interna in restauro
-CREATE OR REPLACE FUNCTION trigger_no_prestito_opera_in_restauro()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Verifica se l'opera interna è attualmente in restauro (DataFine IS NULL)
-    IF EXISTS (
-        SELECT 1
-        FROM Restauro R
-        WHERE R.OperaID = NEW.ID_OperaInterna
-        AND R.DataFine IS NULL
-    ) THEN
-        RAISE EXCEPTION 'L''opera è attualmente in restauro e non può essere prestata.';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Trigger per impedire il prestito di un'opera in restauro
-CREATE TRIGGER TriggerNoPrestitoOperaInRestauro
-BEFORE INSERT OR UPDATE ON Prestito
-FOR EACH ROW
-EXECUTE FUNCTION trigger_no_prestito_opera_in_restauro();
-
--- Il Vincolo 12 è verificato tramite un check nella tabella "Recensione"
-
--- Vincolo 13
+-- Vincolo 14
 -- Trigger che vieta la sovrapposizione di più mostre temporanee nella stessa sala nello stesso periodo temporale
 CREATE OR REPLACE FUNCTION trigger_no_mostre_temporanee_sovrapposte()
 RETURNS TRIGGER AS $$
@@ -224,38 +187,7 @@ BEFORE INSERT OR UPDATE ON DisposizioneMostreTemporanee
 FOR EACH ROW
 EXECUTE FUNCTION trigger_no_mostre_temporanee_sovrapposte();
 
--- Vincolo 14
--- Trigger per verificare la presenza di mostre temporanee uguali nello stesso periodo temporale
-CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_mostre_temporanee()
-RETURNS TRIGGER AS $$
-DECLARE
-    data_inizio_other DATE;
-    data_fine_other DATE;
-BEGIN
-    -- Verifica se esiste già una mostra temporanea con lo stesso nome e periodi sovrapposti
-    IF EXISTS (
-        SELECT 1
-        FROM MostraTemporanea
-        WHERE Nome = NEW.Nome
-        AND (
-            (NEW.DataInizio >= DataInizio AND NEW.DataInizio < DataFine) OR
-            (NEW.DataFine > DataInizio AND NEW.DataFine <= DataFine) OR
-            (NEW.DataInizio <= DataInizio AND NEW.DataFine >= DataFine)
-        )
-    ) THEN
-        RAISE EXCEPTION 'È già presente una mostra temporanea con lo stesso nome in questo periodo temporale.';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER TriggerNoSovrapposizioneMostreTemporanee
-BEFORE INSERT OR UPDATE ON MostraTemporanea
-FOR EACH ROW
-EXECUTE FUNCTION trigger_no_sovrapposizione_mostre_temporanee();
-
--- Vincolo 15
+-- Vincolo 16
 -- Trigger per verificare la coincidenza dei periodi di prestito e mostra temporanea
 CREATE OR REPLACE FUNCTION trigger_verifica_coincidenza_periodi()
 RETURNS TRIGGER AS $$
@@ -291,24 +223,25 @@ BEFORE INSERT OR UPDATE ON ComposizioneMostreTemporanee
 FOR EACH ROW
 EXECUTE FUNCTION trigger_verifica_coincidenza_periodi();
 
--- Vincolo 16 & 17
+-- Vincolo 11 & 12 & 17 & 18
 -- Trigger per verificare se un'opera esterna o interna è già in prestito durante un certo periodo
-CREATE OR REPLACE FUNCTION trigger_verifica_prestito_conflitto()
+-- Trigger per verificare se l'opera è in mostra permanente o in restauro
+CREATE OR REPLACE FUNCTION trigger_verifica_prestito_conflitto_e_stato()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Controlla se esiste già un prestito per l'opera interna durante il periodo specificato
-    IF EXISTS (
+    IF NEW.ID_OperaInterna IS NOT NULL AND EXISTS (
         SELECT 1
         FROM Prestito
         WHERE ID_OperaInterna = NEW.ID_OperaInterna
         AND DataInizio <= NEW.DataFine
         AND DataFine >= NEW.DataInizio
     ) THEN
-        RAISE EXCEPTION 'L''opera è già in prestito durante il periodo specificato.';
+        RAISE EXCEPTION 'L''opera interna è già in prestito durante il periodo specificato.';
     END IF;
 
     -- Controlla se esiste già un prestito per l'opera esterna durante il periodo specificato
-    IF EXISTS (
+    IF NEW.ID_OperaEsterna IS NOT NULL AND EXISTS (
         SELECT 1
         FROM Prestito
         WHERE ID_OperaEsterna = NEW.ID_OperaEsterna
@@ -318,12 +251,33 @@ BEGIN
         RAISE EXCEPTION 'L''opera esterna è già in prestito durante il periodo specificato.';
     END IF;
 
+    -- Verifica se l'opera interna è esposta in una mostra permanente
+    IF NEW.ID_OperaInterna IS NOT NULL AND EXISTS (
+        SELECT 1
+        FROM OperaInterna
+        WHERE ID = NEW.ID_OperaInterna
+        AND Mostra IS NOT NULL
+    ) THEN
+        RAISE EXCEPTION 'L''opera interna è attualmente esposta in una mostra permanente e non può essere prestata.';
+    END IF;
+
+    -- Verifica se l'opera interna è in restauro
+    IF NEW.ID_OperaInterna IS NOT NULL AND EXISTS (
+        SELECT 1
+        FROM Restauro R
+        WHERE R.OperaID = NEW.ID_OperaInterna
+        AND R.DataFine IS NULL
+    ) THEN
+        RAISE EXCEPTION 'L''opera interna è attualmente in restauro e non può essere prestata.';
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger per verificare se un'opera interna o esterna è già in prestito durante un certo periodo
-CREATE TRIGGER TriggerVerificaPrestitoConflitto
+-- Trigger combinato per verificare conflitti di prestito e stato dell'opera interna
+CREATE TRIGGER TriggerVerificaPrestitoConflittoEStato
 BEFORE INSERT OR UPDATE ON Prestito
 FOR EACH ROW
-EXECUTE FUNCTION trigger_verifica_prestito_conflitto();
+EXECUTE FUNCTION trigger_verifica_prestito_conflitto_e_stato();
+

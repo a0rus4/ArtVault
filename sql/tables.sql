@@ -1,7 +1,8 @@
 CREATE TABLE Piano (
     Numero INT PRIMARY KEY,
     Descrizione VARCHAR(255),
-    Superficie DECIMAL(10,2)
+    Superficie DECIMAL(10,2),
+	CHECK (Numero >=0)
 );
 
 CREATE TABLE Laboratorio (
