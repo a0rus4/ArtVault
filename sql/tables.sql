@@ -10,6 +10,7 @@ CREATE TABLE Laboratorio (
     Piano INT,
     Nome VARCHAR(255),
     FOREIGN KEY (Piano) REFERENCES Piano(Numero)
+		ON DELETE CASCADE -- Impediamo modifica del piano, ma non l'eliminazione
 );
 
 CREATE TABLE Direttore (
@@ -51,7 +52,8 @@ CREATE TABLE Restauratore (
     NumeroRestauri INT,
     DataAssunzione DATE,
     DataLicenziamento DATE,
-    FOREIGN KEY (Laboratorio) REFERENCES Laboratorio(Specializzazione),
+    FOREIGN KEY (Laboratorio) REFERENCES Laboratorio(Specializzazione)
+		ON DELETE SET NULL ON UPDATE SET NULL,
     CHECK (DataLicenziamento IS NULL OR DataAssunzione < DataLicenziamento)
 );
 
