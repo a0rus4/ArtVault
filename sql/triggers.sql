@@ -63,6 +63,36 @@ BEFORE INSERT OR UPDATE ON MostraTemporanea
 FOR EACH ROW
 EXECUTE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi();
 
+-- Vincolo 14
+-- Trigger che vieta la sovrapposizione di più mostre temporanee nella stessa sala nello stesso periodo temporale
+CREATE OR REPLACE FUNCTION trigger_no_mostre_temporanee_sovrapposte()
+RETURNS TRIGGER AS $$
+DECLARE
+    dataInizio DATE;
+    dataFine DATE;
+BEGIN
+    SELECT DataInizio, DataFine INTO dataInizio, dataFine
+    FROM MostraTemporanea
+    WHERE ID = NEW.ID_MostraTemporanea;
+
+    IF EXISTS (
+        SELECT 1 
+        FROM DisposizioneMostreTemporanee DMT
+        JOIN MostraTemporanea MT ON DMT.ID_MostraTemporanea = MT.ID
+		WHERE MT.ID <> NEW.ID_MostraTemporanea -- considera solo le disposizioni di altre mostre temporanee
+        AND DMT.Sala = NEW.Sala AND dataInizio < MT.DataFine AND dataFine > MT.DataInizio
+    ) THEN
+        RAISE EXCEPTION 'La sala è già occupata da un''altra mostra temporanea in questo periodo.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TriggerNoMostreTemporaneeSovrapposte
+BEFORE INSERT OR UPDATE ON DisposizioneMostreTemporanee
+FOR EACH ROW
+EXECUTE FUNCTION trigger_no_mostre_temporanee_sovrapposte();
+
 -- Vincolo 6 & 7 & 9
 -- Trigger che vieta che le date di un restauro si sovrappongano ad altri restauri
 -- Inoltre, se è presente un opera attualmente in restauro, non si possono inserire/modificare 
@@ -71,6 +101,8 @@ EXECUTE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi();
 -- Trigger che gestisce la mostra temporanea (rimozione e reinserimento automatico) dell'opera in restauro
 CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro()
 RETURNS TRIGGER AS $$
+DECLARE
+    mostra_precedente TEXT;
 BEGIN
     -- Verifica sovrapposizione con altri restauri
     IF EXISTS (
@@ -114,19 +146,19 @@ BEGIN
         SET Mostra = NULL
         WHERE ID = NEW.OperaID;
     ELSE
-        -- Reinserisce l'opera nella mostra precedente se DataFine non è NULL
-        UPDATE OperaInterna
-        SET Mostra = (
-            SELECT MostraPrecedente
-            FROM Restauro
-            WHERE ID = NEW.ID
-        )
-        WHERE ID = NEW.OperaID;
-        
-        -- Rimuove la mostra precedente dal restauro
-        UPDATE Restauro
-        SET MostraPrecedente = NULL
-        WHERE ID = NEW.ID;
+        -- Reinserisce l'opera nella mostra precedente se DataFine non è NULL e MostraPrecedente non è NULL
+        mostra_precedente := (SELECT MostraPrecedente FROM Restauro WHERE ID = NEW.ID);
+
+        IF mostra_precedente IS NOT NULL THEN
+            UPDATE OperaInterna
+            SET Mostra = mostra_precedente
+            WHERE ID = NEW.OperaID;
+            
+            -- Rimuove la mostra precedente dal restauro
+            UPDATE Restauro
+            SET MostraPrecedente = NULL
+            WHERE ID = NEW.ID;
+        END IF;
     END IF;
 
     RETURN NEW;
@@ -197,37 +229,6 @@ FOR EACH ROW
 EXECUTE FUNCTION trigger_check_specializzazione_restauratore();
 
 -- Il Vincolo 13 è verificato tramite un check nella tabella "Recensione"
-
--- Vincolo 14
--- Trigger che vieta la sovrapposizione di più mostre temporanee nella stessa sala nello stesso periodo temporale
-CREATE OR REPLACE FUNCTION trigger_no_mostre_temporanee_sovrapposte()
-RETURNS TRIGGER AS $$
-DECLARE
-    dataInizio DATE;
-    dataFine DATE;
-BEGIN
-    SELECT DataInizio, DataFine INTO dataInizio, dataFine
-    FROM MostraTemporanea
-    WHERE ID = NEW.ID_MostraTemporanea;
-
-    IF EXISTS (
-        SELECT 1 
-        FROM DisposizioneMostreTemporanee DMT
-        JOIN MostraTemporanea MT ON DMT.ID_MostraTemporanea = MT.ID
-        WHERE DMT.Sala = NEW.Sala
-        AND dataInizio < MT.DataFine
-        AND dataFine > MT.DataInizio
-    ) THEN
-        RAISE EXCEPTION 'La sala è già occupata da un''altra mostra temporanea in questo periodo.';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER TriggerNoMostreTemporaneeSovrapposte
-BEFORE INSERT OR UPDATE ON DisposizioneMostreTemporanee
-FOR EACH ROW
-EXECUTE FUNCTION trigger_no_mostre_temporanee_sovrapposte();
 
 -- Vincolo 16
 -- Trigger per verificare la coincidenza dei periodi di prestito e mostra temporanea
