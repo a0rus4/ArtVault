@@ -71,7 +71,7 @@ CREATE TABLE Registrar (
 -- Tipo = 1 se è permanente | Tipo = 0 se è temporanea
 CREATE TABLE Mostra (
     Nome VARCHAR(255) PRIMARY KEY,
-    Prezzo DECIMAL(10,2),
+    Prezzo DECIMAL(3,2),
     Descrizione TEXT,
     VotoMedio DECIMAL(3,2),
     Tipo Boolean,
@@ -272,10 +272,11 @@ CREATE TABLE Biglietto (
     NumeroSeriale INT PRIMARY KEY,
     GiornoValidità DATE,
     Audioguida BOOLEAN,
-    Sconto DECIMAL(5,2),
-    PrezzoTot DECIMAL(10,2),
+    Sconto INT,
+    PrezzoTot DECIMAL(3,2),
     Visitatore VARCHAR(255),
     Mostra VARCHAR(255),
     FOREIGN KEY (Visitatore) REFERENCES Visitatore(Email),
-    FOREIGN KEY (Mostra) REFERENCES Mostra(Nome)
+    FOREIGN KEY (Mostra) REFERENCES Mostra(Nome),
+	CHECK (Sconto BETWEEN 0 AND 100)
 );
