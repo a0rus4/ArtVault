@@ -106,7 +106,9 @@ CREATE TABLE OperaInterna (
     ID_Artista INT,
     Specializzazione VARCHAR(255),
     DataUltimoRestauro DATE,
+	MostraPrecedente VARCHAR(255),
     FOREIGN KEY (Mostra) REFERENCES Mostra(Nome),
+	FOREIGN KEY (MostraPrecedente) REFERENCES Mostra(Nome),
     FOREIGN KEY (ID_Artista) REFERENCES Artista(ID)
 );
 

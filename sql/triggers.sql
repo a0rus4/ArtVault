@@ -66,7 +66,7 @@ EXECUTE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi();
 -- Vincolo 6 & 7 & 9
 -- Trigger che vieta che le date di un restauro si sovrappongano ad altri restauri
 -- Inoltre, se è presente un opera attualmente in restauro, non si possono inserire/modificare 
---     restauri che iniziano o finiscono successivamente al restauro attuale
+     -- restauri che iniziano o finiscono successivamente al restauro attuale
 -- Trigger che verifica la specializzazione di un restauratore che vuole restaurare un opera
 -- Trigger che gestisce la mostra temporanea (rimozione e reinserimento automatico) dell'opera in restauro
 CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro()
@@ -79,7 +79,7 @@ BEGIN
         WHERE R2.OperaID = NEW.OperaID
         AND R2.ID <> NEW.ID
         AND (
-            (R2.DataFine IS NULL AND (NEW.DataInizio >= R2.DataInizio OR NEW.DataFine >= R2.DataInizio)) OR
+            (R2.DataFine IS NULL AND (NEW.DataInizio >= R2.DataInizio OR NEW.DataFine >= R2.DataInizio OR New.DataFine IS NULL)) OR
             (NEW.DataInizio < R2.DataFine AND NEW.DataFine > R2.DataInizio)
         )
     ) THEN
@@ -98,24 +98,63 @@ BEGIN
         RAISE EXCEPTION 'Il restauratore non è specializzato nell''opera da restaurare.';
     END IF;
 	
-	-- 
+	-- Nel caso in cui tutto vada bene, l'opera deve essere rimossa in automatico dalla mostra in cui è esposta
+	-- Memorizza la mostra a cui apparteneva l'opera se DataFine è NULL
+    IF NEW.DataFine IS NULL THEN
+        UPDATE Restauro
+        SET MostraPrecedente = (
+            SELECT Mostra
+            FROM OperaInterna
+            WHERE ID = NEW.OperaID
+        )
+        WHERE ID = NEW.ID;
+        
+        -- Rimuove l'opera dalla mostra
+        UPDATE OperaInterna
+        SET Mostra = NULL
+        WHERE ID = NEW.OperaID;
+    ELSE
+        -- Reinserisce l'opera nella mostra precedente se DataFine non è NULL
+        UPDATE OperaInterna
+        SET Mostra = (
+            SELECT MostraPrecedente
+            FROM Restauro
+            WHERE ID = NEW.ID
+        )
+        WHERE ID = NEW.OperaID;
+        
+        -- Rimuove la mostra precedente dal restauro
+        UPDATE Restauro
+        SET MostraPrecedente = NULL
+        WHERE ID = NEW.ID;
+    END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger combinato per impedire la sovrapposizione delle date di restauro e verificare la specializzazione del restauratore
 CREATE TRIGGER TriggerNoSovrapposizioneESpecializzazioneRestauro
 BEFORE INSERT OR UPDATE ON Restauro
 FOR EACH ROW
 EXECUTE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro();
 
-
 -- Vincolo 8
--- Trigger che vieta l'inserimento di un opera in una mostra se l'opera è in restauro
+-- Trigger che vieta l'inserimento di un opera interna in una mostra se l'opera è in restauro
+-- Trigger che vieta l'inserimento di un opera interna in una mostra se la mostra non è permanente
 CREATE OR REPLACE FUNCTION trigger_no_opera_in_restauro_in_mostra()
 RETURNS TRIGGER AS $$
 BEGIN
+	-- Verifica se l'opera è esposta in una mostra non permanente (Tipo != 1)
+	IF NEW.Mostra IS NOT NULL AND EXISTS (
+		SELECT 1
+		FROM Mostra
+		WHERE ID = NEW.Mostra
+		AND Tipo != 1
+	) THEN
+		RAISE EXCEPTION 'L''opera può essere esposta solo in mostre permanenti.';
+	END IF;
+	
+	-- Verifica se l'opera è in restauro attualmente
     IF EXISTS (
         SELECT 1
         FROM Restauro
@@ -226,6 +265,8 @@ BEFORE INSERT OR UPDATE ON ComposizioneMostreTemporanee
 FOR EACH ROW
 EXECUTE FUNCTION trigger_verifica_coincidenza_periodi();
 
+-- Per le opere esterne sappiamo già che non possono essere esposte in mostre permanenti perchè vengono inserite
+     -- nella tabella "ComposizioneMostreTemporanee" che sfruttano un ID univoco delle mostre temporanee
 -- Vincolo 11 & 12 & 17 & 18
 -- Trigger per verificare se un'opera esterna o interna è già in prestito durante un certo periodo
 -- Trigger per verificare se l'opera è in mostra permanente o in restauro
