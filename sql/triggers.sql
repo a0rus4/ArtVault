@@ -70,11 +70,20 @@ RETURNS TRIGGER AS $$
 DECLARE
     dataInizio DATE;
     dataFine DATE;
+	tipoSala BOOLEAN;
 BEGIN
     SELECT DataInizio, DataFine INTO dataInizio, dataFine
     FROM MostraTemporanea
     WHERE ID = NEW.ID_MostraTemporanea;
 
+    SELECT Tipo INTO tipoSala
+    FROM Sala
+    WHERE ID = NEW.Sala;
+
+    IF tipoSala = 1 THEN
+        RAISE EXCEPTION 'Impossibile esporre una mostra temporanea in una sala permanente.';
+    END IF;
+	
     IF EXISTS (
         SELECT 1 
         FROM DisposizioneMostreTemporanee DMT
@@ -99,10 +108,12 @@ EXECUTE FUNCTION trigger_no_mostre_temporanee_sovrapposte();
      -- restauri che iniziano o finiscono successivamente al restauro attuale
 -- Trigger che verifica la specializzazione di un restauratore che vuole restaurare un opera
 -- Trigger che gestisce la mostra temporanea (rimozione e reinserimento automatico) dell'opera in restauro
+-- Aggiornamento del dato derivato "DataUltimoRestauro" in "OperaInterna"
 CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro()
 RETURNS TRIGGER AS $$
 DECLARE
     mostra_precedente TEXT;
+	data_ultimo_restauro DATE;
 BEGIN
     -- Verifica sovrapposizione con altri restauri
     IF EXISTS (
@@ -146,6 +157,18 @@ BEGIN
         SET Mostra = NULL
         WHERE ID = NEW.OperaID;
     ELSE
+	    -- Ottieni la data di fine massima per l'opera
+        SELECT MAX(DataFine) INTO data_ultimo_restauro
+        FROM Restauro
+        WHERE OperaID = NEW.OperaID;
+
+		IF (NEW.DataFine > data_ultimo_restauro) THEN
+			-- Aggiorna l'attributo DataUltimoRestauro nell'entità OperaInterna
+			UPDATE OperaInterna
+			SET DataUltimoRestauro = NEW.DataFine
+			WHERE ID = NEW.OperaID;
+		END IF;
+		
         -- Reinserisce l'opera nella mostra precedente se DataFine non è NULL e MostraPrecedente non è NULL
         mostra_precedente := (SELECT MostraPrecedente FROM Restauro WHERE ID = NEW.ID);
 
@@ -320,9 +343,32 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger combinato per verificare conflitti di prestito e stato dell'opera interna
 CREATE TRIGGER TriggerVerificaPrestitoConflittoEStato
 BEFORE INSERT OR UPDATE ON Prestito
 FOR EACH ROW
 EXECUTE FUNCTION trigger_verifica_prestito_conflitto_e_stato();
 
+-- Trigger per il controllo della corrispondenza del Tipo tra "Sala" e "Mostra"
+CREATE OR REPLACE FUNCTION trigger_controllo_tipo_mostra_sala()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Controllo se la Mostra è NULL, in tal caso non ci sono restrizioni
+    IF NEW.Mostra IS NOT NULL THEN
+        -- Ottengo il tipo della mostra
+        DECLARE tipoMostra BOOLEAN;
+        SELECT Tipo INTO tipoMostra FROM Mostra WHERE Nome = NEW.Mostra;
+
+        -- Controllo se il tipo della mostra e il tipo della sala coincidono
+        IF NEW.Tipo <> tipoMostra THEN
+            RAISE EXCEPTION 'Impossibile aggiungere o modificare la mostra nella sala. Il tipo di mostra e il tipo di sala non coincidono.';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TriggerControlloTipoMostraSala
+BEFORE INSERT OR UPDATE ON Sala
+FOR EACH ROW
+EXECUTE FUNCTION trigger_controllo_tipo_mostra_sala();

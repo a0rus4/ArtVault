@@ -76,7 +76,7 @@ CREATE TABLE Mostra (
     Prezzo DECIMAL(3,2),
     Descrizione TEXT,
     VotoMedio DECIMAL(3,2),
-    Tipo Boolean,
+    Tipo BOOLEAN,
     Curatore CHAR(16),
     FOREIGN KEY (Curatore) REFERENCES Curatore(CF)
 );
