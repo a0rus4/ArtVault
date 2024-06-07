@@ -2,9 +2,19 @@
 
 -- Vincolo 5
 -- Trigger che vieta la sovrapposizione tra un evento e una mostra in una stessa sala e periodo temporale
-CREATE OR REPLACE FUNCTION trigger_no_evento_durante_mostra()
+CREATE OR REPLACE FUNCTION trigger_evento()
 RETURNS TRIGGER AS $$
+DECLARE
+	data_licenziamento DATE;
 BEGIN
+	-- Verifica che il direttore non sia licenziato in quel periodo
+	SELECT DataLizenziamento INTO data_licenziamento FROM Direttore 
+	WHERE CF = NEW.Direttore
+	
+	IF data_licenziamento < NEW.Data THEN
+		RAISE EXCEPTION 'Il direttore non può organizzare un evento in una data successiva al suo licenziamento';
+	END IF;
+	
     IF EXISTS (
         SELECT 1
         FROM DisposizioneMostreTemporanee DMT
@@ -18,15 +28,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerNoEventoDuranteMostra
+CREATE TRIGGER TriggerEvento
 BEFORE INSERT OR UPDATE ON Evento
 FOR EACH ROW
-EXECUTE FUNCTION trigger_no_evento_durante_mostra();
+EXECUTE FUNCTION trigger_evento();
 
 -- Vincolo 5 & 15
 -- Trigger per verificare la sovrapposizione di mostre temporanee e eventi nella stessa sala e periodo temporale
 -- Trigger per verificare la presenza di mostre temporanee uguali nello stesso periodo temporale
-CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi()
+CREATE OR REPLACE FUNCTION trigger_mostra_temporanea()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Verifica sovrapposizione mostre temporanee con lo stesso nome
@@ -58,14 +68,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerNoSovrapposizioneMostreEdEventi
+CREATE TRIGGER TriggerMostraTemporanea
 BEFORE INSERT OR UPDATE ON MostraTemporanea
 FOR EACH ROW
-EXECUTE FUNCTION trigger_no_sovrapposizione_mostre_ed_eventi();
+EXECUTE FUNCTION trigger_mostra_temporanea();
 
 -- Vincolo 14
 -- Trigger che vieta la sovrapposizione di più mostre temporanee nella stessa sala nello stesso periodo temporale
-CREATE OR REPLACE FUNCTION trigger_no_mostre_temporanee_sovrapposte()
+CREATE OR REPLACE FUNCTION trigger_disposizione_mostre_temporanee()
 RETURNS TRIGGER AS $$
 DECLARE
     dataInizio DATE;
@@ -97,24 +107,34 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerNoMostreTemporaneeSovrapposte
+CREATE TRIGGER TriggerDisposizioneMostreTemporanee
 BEFORE INSERT OR UPDATE ON DisposizioneMostreTemporanee
 FOR EACH ROW
-EXECUTE FUNCTION trigger_no_mostre_temporanee_sovrapposte();
+EXECUTE FUNCTION trigger_disposizione_mostre_temporanee();
 
--- Vincolo 6 & 7 & 9
+-- Vincolo 6 & 7 & 9 
 -- Trigger che vieta che le date di un restauro si sovrappongano ad altri restauri
 -- Inoltre, se è presente un opera attualmente in restauro, non si possono inserire/modificare 
      -- restauri che iniziano o finiscono successivamente al restauro attuale
--- Trigger che verifica la specializzazione di un restauratore che vuole restaurare un opera
+-- Trigger che verifica la specializzazione di un restauratore che vuole restaurare un opera (Vincolo 10 automaticamente rispettato)
 -- Trigger che gestisce la mostra temporanea (rimozione e reinserimento automatico) dell'opera in restauro
 -- Aggiornamento del dato derivato "DataUltimoRestauro" in "OperaInterna"
-CREATE OR REPLACE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro()
+CREATE OR REPLACE FUNCTION trigger_restauro()
 RETURNS TRIGGER AS $$
 DECLARE
     mostra_precedente TEXT;
 	data_ultimo_restauro DATE;
+	data_licenziamento DATE;
 BEGIN
+    -- Verifica che il restauratore non sia licenziato in quel periodo
+	SELECT DataLizenziamento INTO data_licenziamento FROM Restauratore 
+		WHERE CF = NEW.Restauratore
+	
+	IF (data_licenziamento IS NOT NULL AND New.DataFine IS NOT NULL 
+			AND data_licenziamento < New.DataFine) THEN
+		RAISE EXCEPTION 'Un restauratore non può restaurare un opera dopo il suo licenziamento';
+	END IF;
+		
     -- Verifica sovrapposizione con altri restauri
     IF EXISTS (
         SELECT 1
@@ -157,6 +177,10 @@ BEGIN
         SET Mostra = NULL
         WHERE ID = NEW.OperaID;
     ELSE
+		IF (TG_OP = UPDATE AND OLD.DataFine IS NOT NULL) THEN
+			RAISE EXCEPTION 'Non puoi modificare la data di fine di un restauro già terminato';
+		END IF;
+		
 	    -- Ottieni la data di fine massima per l'opera
         SELECT MAX(DataFine) INTO data_ultimo_restauro
         FROM Restauro
@@ -182,21 +206,39 @@ BEGIN
             SET MostraPrecedente = NULL
             WHERE ID = NEW.ID;
         END IF;
+		
+		-- Se è un insert, incrementa direttamente (sempre se DataFine != NULl)
+		IF TG_OP = 'INSERT' THEN
+			UPDATE Restauratore
+			SET NumeroRestauri = NumeroRestauri + 1
+			WHERE id = NEW.Restauratore;
+		ELSIF TG_OP = 'UPDATE' THEN
+			IF OLD.Restauratore != NEW.Restauratore THEN
+				-- Decrementa il contatore di restauri per il vecchio restauratore
+				UPDATE Restauratore
+				SET NumeroRestauri = NumeroRestauri - 1
+				WHERE id = OLD.Restauratore;
+
+				-- Incrementa il contatore di restauri per il nuovo restauratore
+				UPDATE Restauratore
+				SET NumeroRestauri = NumeroRestauri + 1
+				WHERE id = NEW.Restauratore;
+			END IF;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerNoSovrapposizioneESpecializzazioneRestauro
+CREATE TRIGGER TriggerRestauro
 BEFORE INSERT OR UPDATE ON Restauro
 FOR EACH ROW
-EXECUTE FUNCTION trigger_no_sovrapposizione_e_specializzazione_restauro();
+EXECUTE FUNCTION trigger_restauro();
 
 -- Vincolo 8
 -- Trigger che vieta l'inserimento di un opera interna in una mostra se l'opera è in restauro
 -- Trigger che vieta l'inserimento di un opera interna in una mostra se la mostra non è permanente
-CREATE OR REPLACE FUNCTION trigger_no_opera_in_restauro_in_mostra()
+CREATE OR REPLACE FUNCTION trigger_opera_interna()
 RETURNS TRIGGER AS $$
 BEGIN
 	-- Verifica se l'opera è esposta in una mostra non permanente (Tipo != 1)
@@ -222,40 +264,37 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerNoOperaInRestauroInMostra
+CREATE TRIGGER TriggerOperaInterna
 BEFORE INSERT OR UPDATE ON OperaInterna
 FOR EACH ROW
-EXECUTE FUNCTION trigger_no_opera_in_restauro_in_mostra();
+EXECUTE FUNCTION trigger_opera_interna();
 
--- Vincolo 10
--- Trigger per verificare la specializzazione del restauratore assegnato ad un laboratorio
-CREATE OR REPLACE FUNCTION trigger_check_specializzazione_restauratore()
+-- Il Vincolo 13 è verificato tramite un check nella tabella "Recensione"
+-- Aggiornamento del dato derivato "VotoMedio" in "Mostra" per ogni "Recensione"
+CREATE OR REPLACE FUNCTION aggiorna_media_valutazioni()
 RETURNS TRIGGER AS $$
+DECLARE
+	numero_recensioni INT;
+	somma_recensioni INT;
+	media_recensioni DECIMAL(1,1);
 BEGIN
-    -- Verifica se il restauratore ha la specializzazione richiesta per il laboratorio
-    IF NOT EXISTS (
-        SELECT 1
-        FROM Restauratore R
-        WHERE R.CF = NEW.CF
-        AND R.Specializzazione = NEW.Laboratorio
-    ) THEN
-        RAISE EXCEPTION 'Il restauratore non ha la specializzazione richiesta per il laboratorio.';
-    END IF;
+    numero_recensioni = (SELECT COUNT(*) FROM Recensione WHERE Mostra = NEW.Mostra) + 1
+	somma_recensioni = (SELECT SUM(Voto) FROM Recensione WHERE Mostra = NEW.Mostra) + NEW.Voto
+	media_recensioni = somma_recensioni / somma_recensioni;
+    UPDATE Mostra SET VotoMedio = media_recensioni WHERE id = NEW.mostra_id;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerCheckSpecializzazioneRestauratore
-BEFORE INSERT OR UPDATE ON Restauratore
+CREATE TRIGGER TriggerRecensione
+AFTER INSERT ON Recensioni
 FOR EACH ROW
-EXECUTE FUNCTION trigger_check_specializzazione_restauratore();
-
--- Il Vincolo 13 è verificato tramite un check nella tabella "Recensione"
+EXECUTE FUNCTION aggiorna_media_valutazioni();
 
 -- Vincolo 16
 -- Trigger per verificare la coincidenza dei periodi di prestito e mostra temporanea
-CREATE OR REPLACE FUNCTION trigger_verifica_coincidenza_periodi()
+CREATE OR REPLACE FUNCTION trigger_composizione_mostre_temporanee()
 RETURNS TRIGGER AS $$
 DECLARE
     data_inizio_mostra_temporanea DATE;
@@ -284,10 +323,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerVerificaCoincidenzaPeriodi
+CREATE TRIGGER TriggerComposizioneMostreTemporanee
 BEFORE INSERT OR UPDATE ON ComposizioneMostreTemporanee
 FOR EACH ROW
-EXECUTE FUNCTION trigger_verifica_coincidenza_periodi();
+EXECUTE FUNCTION trigger_prestito();
 
 -- Per le opere esterne sappiamo già che non possono essere esposte in mostre permanenti perchè vengono inserite
      -- nella tabella "ComposizioneMostreTemporanee" che sfruttano un ID univoco delle mostre temporanee
@@ -296,7 +335,17 @@ EXECUTE FUNCTION trigger_verifica_coincidenza_periodi();
 -- Trigger per verificare se l'opera è in mostra permanente o in restauro
 CREATE OR REPLACE FUNCTION trigger_verifica_prestito_conflitto_e_stato()
 RETURNS TRIGGER AS $$
+DECLARE
+	data_licenziamento DATE;
 BEGIN
+	-- Un registrar licenziato non può aggiungere o modificare prestiti
+	SELECT DataLicenziamento INTO data_licenziamento FROM Registrar
+		WHERE CF = New.Registar
+	
+	IF (data_licenziamento IS NOT NULL AND data_licenziamento <= CURRENT_DATE) THEN
+		RAISE EXCEPTION 'Un registrar non può aggiungere/modificare prestiti dopo essere stato licenziato';
+	END IF;
+	
     -- Controlla se esiste già un prestito per l'opera interna durante il periodo specificato
     IF NEW.ID_OperaInterna IS NOT NULL AND EXISTS (
         SELECT 1
@@ -343,13 +392,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerVerificaPrestitoConflittoEStato
+CREATE TRIGGER TriggerPrestito
 BEFORE INSERT OR UPDATE ON Prestito
 FOR EACH ROW
-EXECUTE FUNCTION trigger_verifica_prestito_conflitto_e_stato();
+EXECUTE FUNCTION trigger_prestito();
 
 -- Trigger per il controllo della corrispondenza del Tipo tra "Sala" e "Mostra"
-CREATE OR REPLACE FUNCTION trigger_controllo_tipo_mostra_sala()
+CREATE OR REPLACE FUNCTION trigger_sala()
 RETURNS TRIGGER AS $$
 BEGIN
     -- Controllo se la Mostra è NULL, in tal caso non ci sono restrizioni
@@ -368,7 +417,135 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerControlloTipoMostraSala
+CREATE TRIGGER TriggerSala
 BEFORE INSERT OR UPDATE ON Sala
 FOR EACH ROW
-EXECUTE FUNCTION trigger_controllo_tipo_mostra_sala();
+EXECUTE FUNCTION trigger_sala();
+
+-- Trigger che controlla il licenziamento del curatore
+CREATE OR REPLACE FUNCTION trigger_mostra()
+RETURNS TRIGGER AS $$
+DECLARE 
+	data_licenziamento DATE;
+BEGIN
+	SELECT DataLizenziamento INTO data_licenziamento FROM Curatore 
+	WHERE CF = NEW.Curatore
+	
+    IF data_licenziamento IS NOT NULL THEN
+        RAISE EXCEPTION 'Un curatore licenziato non può essere associato ad una mostra.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TriggerMostra
+BEFORE INSERT OR UPDATE ON Mostra
+FOR EACH ROW
+EXECUTE FUNCTION trigger_mostra();
+
+---
+-- Triggers per il controllo dei licenziamenti dei dipendenti che partecipano a un evento
+---
+
+CREATE OR REPLACE FUNCTION trigger_partecipazione_evento_curatore()
+RETURNS TRIGGER AS $$
+DECLARE 
+	data_licenziamento DATE;
+BEGIN
+	SELECT DataLizenziamento INTO data_licenziamento FROM Curatore 
+	WHERE CF = NEW.Curatore
+	
+    IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
+        RAISE EXCEPTION 'Un curatore non può partecipare ad un evento successivo al suo licenziamento.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TriggerPartecipazioneEventoCuratore
+BEFORE INSERT OR UPDATE ON PartecipazioneEventoCuratore
+FOR EACH ROW
+EXECUTE FUNCTION trigger_partecipazione_evento_curatore();
+
+-- 
+
+CREATE OR REPLACE FUNCTION trigger_partecipazione_evento_restauratore()
+RETURNS TRIGGER AS $$
+DECLARE 
+	data_licenziamento DATE;
+BEGIN
+	SELECT DataLizenziamento INTO data_licenziamento FROM Restauratore 
+	WHERE CF = NEW.Restauratore
+	
+    IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
+        RAISE EXCEPTION 'Un restauratore non può partecipare ad un evento successivo al suo licenziamento.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TriggerPartecipazioneEventoRestauratore
+BEFORE INSERT OR UPDATE ON PartecipazioneEventoRestauratore
+FOR EACH ROW
+EXECUTE FUNCTION trigger_partecipazione_evento_restauratore();
+
+--
+
+CREATE OR REPLACE FUNCTION trigger_partecipazione_evento_registrar()
+RETURNS TRIGGER AS $$
+DECLARE 
+	data_licenziamento DATE;
+BEGIN
+	SELECT DataLizenziamento INTO data_licenziamento FROM Registrar 
+	WHERE CF = NEW.Registrar
+	
+    IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
+        RAISE EXCEPTION 'Un registrar non può partecipare ad un evento successivo al suo licenziamento.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TriggerPartecipazioneEventoRegistrar
+BEFORE INSERT OR UPDATE ON PartecipazioneEventoRegistrar
+FOR EACH ROW
+EXECUTE FUNCTION trigger_partecipazione_evento_registrar();
+
+---
+-- Triggers per il controllo dei licenziamenti dei direttori nel registro delle modifiche
+---
+
+CREATE OR REPLACE FUNCTION trigger_registro_modifiche()
+RETURNS TRIGGER AS $$
+DECLARE 
+	data_licenziamento DATE;
+BEGIN
+	SELECT DataLizenziamento INTO data_licenziamento FROM Direttore 
+	WHERE CF = NEW.Direttore
+	
+    IF (data_licenziamento IS NOT NULL AND CURRENT_DATE > data_licenziamento) THEN
+        RAISE EXCEPTION 'Un direttore non può eseguire modifiche nel registro dei dipendenti.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TriggerRegistroModificheCuratore
+BEFORE INSERT OR UPDATE ON RegistroModificheCuratore
+FOR EACH ROW
+EXECUTE FUNCTION trigger_registro_modifiche();
+
+CREATE TRIGGER TriggerRegistroModificheRestauratore
+BEFORE INSERT OR UPDATE ON RegistroModificheRestauratore
+FOR EACH ROW
+EXECUTE FUNCTION trigger_registro_modifiche();
+
+CREATE TRIGGER TriggerRegistroModificheRegistrar
+BEFORE INSERT OR UPDATE ON RegistroModificheRegistrar
+FOR EACH ROW
+EXECUTE FUNCTION trigger_registro_modifiche();
