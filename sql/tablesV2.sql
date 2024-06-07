@@ -72,7 +72,7 @@ CREATE TABLE Mostra (
     Nome VARCHAR(255) PRIMARY KEY,
     Prezzo DECIMAL(3,2),
     Descrizione TEXT,
-    VotoMedio DECIMAL(3,2),
+    VotoMedio DECIMAL(1,1),
     Tipo BOOLEAN,
     Curatore CHAR(16),
     FOREIGN KEY (Curatore) REFERENCES Curatore(CF)
@@ -171,7 +171,6 @@ CREATE TABLE PartecipazioneEventoCuratore (
     PRIMARY KEY (EventoSala, EventoData, Curatore),
     FOREIGN KEY (EventoSala, EventoData) REFERENCES Evento(Sala, Data) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (Curatore) REFERENCES Curatore(CF)
-    
 );
 
 CREATE TABLE PartecipazioneEventoRestauratore (
@@ -231,8 +230,6 @@ CREATE TABLE Restauro (
     FOREIGN KEY (ID_Laboratorio ) REFERENCES Laboratorio(Specializzazione),
     CHECK (DataFine IS NULL OR (DataFine > DataInizio AND DataFine < CURRENT_DATE))
 );
-
-
 
 CREATE TABLE Ente (
     Telefono VARCHAR(20) PRIMARY KEY,
