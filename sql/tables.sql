@@ -75,8 +75,8 @@ CREATE TABLE Mostra (
     VotoMedio DECIMAL(1,1),
     Tipo BOOLEAN,
     Curatore CHAR(16),
+    Stato BOOLEAN,
     FOREIGN KEY (Curatore) REFERENCES Curatore(CF)
-   
 );
 
 CREATE TABLE MostraTemporanea (
@@ -285,7 +285,7 @@ CREATE TABLE Biglietto (
     Visitatore VARCHAR(255),
     Mostra VARCHAR(255),
     FOREIGN KEY (Visitatore) REFERENCES Visitatore(Email) ON DELETE CASCADE ON UPDATE CASCADE,
-    FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON DELETE CASCADE ON UPDATE CASCADE,
+    FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON UPDATE CASCADE,
 	CHECK (Sconto BETWEEN 0 AND 100)
     -- nel caso in cui un visitatore o una mostra inerenti al biglietto venono eliminate, si elimina anche il biglietto
 );
