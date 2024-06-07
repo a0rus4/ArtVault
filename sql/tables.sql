@@ -68,6 +68,8 @@ CREATE TABLE Registrar (
 );
 
 -- Tipo = 1 se è permanente | Tipo = 0 se è temporanea
+-- Stato = 1 se è attualemente esposta | Stato = 0 se non è attualmente esposta
+-- (per le mostre temporanee, ci dicono a grandi linee quanta probabilità c'è che avverrà una sua edizione a breve)
 CREATE TABLE Mostra (
     Nome VARCHAR(255) PRIMARY KEY,
     Prezzo DECIMAL(3,2),
