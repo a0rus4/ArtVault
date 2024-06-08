@@ -88,11 +88,11 @@ EXECUTE FUNCTION trigger_mostra_temporanea();
 CREATE OR REPLACE FUNCTION trigger_disposizione_mostre_temporanee()
 RETURNS TRIGGER AS $$
 DECLARE
-    dataInizio DATE;
-    dataFine DATE;
+    data_inizio DATE;
+    data_fine DATE;
 	tipoSala BOOLEAN;
 BEGIN
-    SELECT DataInizio, DataFine INTO dataInizio, dataFine
+    SELECT DataInizio, DataFine INTO data_inizio, data_fine
     FROM MostraTemporanea
     WHERE ID = NEW.ID_MostraTemporanea;
 
@@ -110,7 +110,7 @@ BEGIN
         FROM DisposizioneMostreTemporanee DMT
         JOIN MostraTemporanea MT ON DMT.ID_MostraTemporanea = MT.ID
 		WHERE MT.ID <> NEW.ID_MostraTemporanea -- considera solo le disposizioni di altre mostre temporanee
-        AND DMT.Sala = NEW.Sala AND dataInizio < MT.DataFine AND dataFine > MT.DataInizio
+        AND DMT.Sala = NEW.Sala AND data_inizio < MT.DataFine AND data_fine > MT.DataInizio
     ) THEN
         RAISE EXCEPTION 'La sala è già occupata da un''altra mostra temporanea in questo periodo.';
     END IF;
@@ -118,7 +118,7 @@ BEGIN
 	-- Verifica la sovrapposizione con eventi nella stessa sala e nello stesso periodo
 	IF EXISTS (
 		SELECT 1 FROM Evento E WHERE E.Sala = New.Sala
-			AND dataInizio <= E.Data AND dataFine >= E.Data
+			AND data_inizio <= E.Data AND data_fine >= E.Data
 	) THEN
 		RAISE EXCEPTION 'La sala è già occupata da un evento in questo periodo.';
 	END IF;
