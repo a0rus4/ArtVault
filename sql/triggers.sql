@@ -276,11 +276,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM Restauro
-<<<<<<< HEAD
         WHERE ID_Opera = NEW.ID
-=======
-        WHERE ID\Opera = NEW.ID
->>>>>>> refs/remotes/origin/main
         AND DataFine IS NULL
     ) THEN
         RAISE EXCEPTION 'L''opera è attualmente in restauro e non può essere esposta in una mostra.';
