@@ -430,7 +430,7 @@ BEGIN
         SELECT Tipo INTO tipo_mostra FROM Mostra WHERE Nome = NEW.Mostra;
 
         -- Controllo se il tipo della mostra e il tipo della sala coincidono
-        IF NEW.Tipo IS NOT tipo_mostra THEN
+        IF NEW.Tipo <> tipo_mostra THEN
             RAISE EXCEPTION 'Impossibile aggiungere o modificare la mostra nella sala. Il tipo di mostra e il tipo di sala non coincidono.';
         END IF;
     END IF;
