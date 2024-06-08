@@ -266,7 +266,7 @@ BEGIN
 	IF NEW.Mostra IS NOT NULL AND EXISTS (
 		SELECT 1
 		FROM Mostra
-		WHERE ID = NEW.Mostra
+		WHERE Nome = NEW.Mostra
 		AND Tipo != 1
 	) THEN
 		RAISE EXCEPTION 'L''opera può essere esposta solo in mostre permanenti.';
