@@ -8,7 +8,7 @@ DECLARE
 	data_licenziamento DATE;
 BEGIN
 	-- Verifica che il direttore non sia licenziato in quel periodo
-	SELECT DataLizenziamento INTO data_licenziamento FROM Direttore 
+	SELECT DataLicenziamento INTO data_licenziamento FROM Direttore 
 		WHERE CF = NEW.Direttore;
 	
 	IF (data_licenziamento < NEW.Data) THEN
@@ -127,7 +127,7 @@ DECLARE
 	data_licenziamento DATE;
 BEGIN
     -- Verifica che il restauratore non sia licenziato in quel periodo
-	SELECT DataLizenziamento INTO data_licenziamento FROM Restauratore 
+	SELECT DataLicenziamento INTO data_licenziamento FROM Restauratore 
 		WHERE CF = NEW.Restauratore;
 	
 	IF (data_licenziamento IS NOT NULL AND New.DataFine IS NOT NULL 
@@ -430,7 +430,7 @@ RETURNS TRIGGER AS $$
 DECLARE 
 	data_licenziamento DATE;
 BEGIN
-	SELECT DataLizenziamento INTO data_licenziamento FROM Curatore 
+	SELECT DataLicenziamento INTO data_licenziamento FROM Curatore 
 	WHERE CF = NEW.Curatore;
 	
     IF (data_licenziamento IS NOT NULL) THEN
@@ -455,7 +455,7 @@ RETURNS TRIGGER AS $$
 DECLARE 
 	data_licenziamento DATE;
 BEGIN
-	SELECT DataLizenziamento INTO data_licenziamento FROM Curatore 
+	SELECT DataLicenziamento INTO data_licenziamento FROM Curatore 
 		WHERE CF = NEW.Curatore;
 	
     IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
@@ -478,7 +478,7 @@ RETURNS TRIGGER AS $$
 DECLARE 
 	data_licenziamento DATE;
 BEGIN
-	SELECT DataLizenziamento INTO data_licenziamento FROM Restauratore 
+	SELECT DataLicenziamento INTO data_licenziamento FROM Restauratore 
 		WHERE CF = NEW.Restauratore;
 	
     IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
@@ -501,7 +501,7 @@ RETURNS TRIGGER AS $$
 DECLARE 
 	data_licenziamento DATE;
 BEGIN
-	SELECT DataLizenziamento INTO data_licenziamento FROM Registrar 
+	SELECT DataLicenziamento INTO data_licenziamento FROM Registrar 
 		WHERE CF = NEW.Registrar;
 	
     IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
@@ -526,7 +526,7 @@ RETURNS TRIGGER AS $$
 DECLARE 
 	data_licenziamento DATE;
 BEGIN
-	SELECT DataLizenziamento INTO data_licenziamento FROM Direttore 
+	SELECT DataLicenziamento INTO data_licenziamento FROM Direttore 
 		WHERE CF = NEW.Direttore;
 	
     IF (data_licenziamento IS NOT NULL AND CURRENT_DATE > data_licenziamento) THEN
