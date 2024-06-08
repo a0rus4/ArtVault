@@ -153,15 +153,15 @@ INSERT INTO OperaInterna (Mostra, Titolo, AnnoProduzione, Provenienza, Tipo, ID_
 ('Astrattismo', 'Composition VIII', 1923, 'Germania', 'Dipinto', 10, 'Pittura', '2024-02-01');
 
 -- Popolamento della tabella OperaEsterna
-INSERT INTO OperaEsterna (Mostra, Titolo, AnnoProduzione, Provenienza, Tipo, ID_Artista, Proprietario, DataInizioPrestito, DataFinePrestito) VALUES
-('Surrealismo', 'The Elephants', 1948, 'Spagna', 'Dipinto', 6, 'Fundacio Gala-Salvador Dali', '2023-01-01', '2023-02-01'),
-('Romanticismo', 'Liberty Leading the People', 1830, 'Francia', 'Dipinto', 12, 'Museo del Louvre', '2023-04-01', '2023-05-01'),
-('Art Nouveau', 'Portrait of Adele Bloch-Bauer I', 1907, 'Austria', 'Dipinto', 7, 'Neue Galerie', '2022-02-01', '2023-03-01'),
-('Arte Concettuale', 'The Physical Impossibility of Death in the Mind of Someone Living', 1991, 'UK', 'Installazione', 8, 'Tate Modern', '2021-03-01', '2023-04-01'),
-('Romanticismo', 'The Raft of the Medusa', 1818, 'Francia', 'Dipinto', 13, 'Museo del Louvre', '2023-04-01', '2023-05-01'),
-('Surrealismo', 'The Persistence of Memory', 1931, 'Spagna', 'Dipinto', 6, 'Museum of Modern Art', '2023-01-01', '2023-02-01'),
-('Art Nouveau', 'The Kiss', 1908, 'Austria', 'Dipinto', 7, 'Neue Galerie', '2022-02-01', '2023-03-01'),
-('Arte Concettuale', 'One and Three Chairs', 1965, 'USA', 'Installazione', 11, 'Neue Galerie', '2021-03-01', '2023-04-01');
+INSERT INTO OperaEsterna (Titolo, AnnoProduzione, Provenienza, Tipo, ID_Artista, Proprietario, DataInizioPrestito, DataFinePrestito) VALUES
+('The Elephants', 1948, 'Spagna', 'Dipinto', 6, 'Fundacio Gala-Salvador Dali', '2023-01-01', '2023-02-01'),
+('Liberty Leading the People', 1830, 'Francia', 'Dipinto', 12, 'Museo del Louvre', '2023-04-01', '2023-05-01'),
+('Portrait of Adele Bloch-Bauer I', 1907, 'Austria', 'Dipinto', 7, 'Neue Galerie', '2022-02-01', '2023-03-01'),
+('The Physical Impossibility of Death in the Mind of Someone Living', 1991, 'UK', 'Installazione', 8, 'Tate Modern', '2021-03-01', '2023-04-01'),
+('The Raft of the Medusa', 1818, 'Francia', 'Dipinto', 13, 'Museo del Louvre', '2023-04-01', '2023-05-01'),
+('The Persistence of Memory', 1931, 'Spagna', 'Dipinto', 6, 'Museum of Modern Art', '2023-01-01', '2023-02-01'),
+('The Kiss', 1908, 'Austria', 'Dipinto', 7, 'Neue Galerie', '2022-02-01', '2023-03-01'),
+('One and Three Chairs', 1965, 'USA', 'Installazione', 11, 'Neue Galerie', '2021-03-01', '2023-04-01');
 
 -- Popolare la tabella Sala con 15 voci
 INSERT INTO Sala (Piano, Capienza, Tipo, Mostra) VALUES
