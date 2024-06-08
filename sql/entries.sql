@@ -285,14 +285,14 @@ INSERT INTO Ente (Telefono, Nome, Tipo, Email, Indirizzo) VALUES
 
 -- Popolare la tabella Prestito con 15 voci
 INSERT INTO Prestito (ID_OperaInterna, ID_OperaEsterna, DataInizio, DataFine, Ente, Registrar) VALUES
-(NULL, 1, '2022-12-01', '2023-03-31', 'Galleria Moderna', 'BNCGRS85M01H501Z'),
-(NULL, 2, '2023-02-01', '2023-07-28', 'Galleria Nazionale', 'RSSMRC70C14H601Z'),
-(NULL, 3, '2022-01-08', '2023-03-31', 'Collezione di Arte Moderna e Contemporanea', 'MRTFRC60E01H501R'),
-(NULL, 4, '2021-02-02', '2023-04-30', 'Museo di Belle Arti', 'BNCLRS80A12H501Z'),
-(NULL, 5, '2022-01-08', '2023-06-31', 'Galleria Civica', 'BNCGRS85M01H501Z'),
-(NULL, 6, '2022-02-06', '2023-02-28', 'Galleria Nazionale', 'RSSMRC70C14H601Z'),
-(NULL, 7, '2022-01-08', '2023-03-31', 'Collezione di Arte Moderna e Contemporanea', 'MRTFRC60E01H501R'),
-(NULL, 8, '2020-12-03', '2023-04-30', 'Museo Archeologico', 'RMDLNR85E09H501Z');
+(NULL, 1, '2022-12-01', '2023-03-31', '3355778892', 'BNCGRS85M01H501Z'),
+(NULL, 2, '2023-02-01', '2023-07-28', '3311223348', 'RSSMRC70C14H601Z'),
+(NULL, 3, '2022-01-08', '2023-03-31', '3390334455', 'MRTFRC60E01H501R'),
+(NULL, 4, '2021-02-02', '2023-04-30', '3344556671', 'BNCLRS80A12H501Z'),
+(NULL, 5, '2022-01-08', '2023-06-30', '3388203344', 'BNCGRS85M01H501Z'),
+(NULL, 6, '2022-02-06', '2023-02-28', '3311223348', 'RSSMRC70C14H601Z'),
+(NULL, 7, '2022-01-08', '2023-03-31', '3390334455', 'MRTFRC60E01H501R'),
+(NULL, 8, '2020-12-03', '2023-04-30', '3300112237', 'RMDLNR85E09H501Z');
 
 INSERT INTO Visitatore (Email, Nome, Cognome) VALUES
 ('alice.bianchi@example.com', 'Alice', 'Bianchi'),

@@ -363,7 +363,7 @@ DECLARE
 BEGIN
 	-- Un registrar licenziato non può aggiungere o modificare prestiti
 	SELECT DataLicenziamento INTO data_licenziamento FROM Registrar
-		WHERE CF = New.Registar;
+		WHERE CF = NEW.Registar;
 	
 	IF (data_licenziamento IS NOT NULL AND data_licenziamento <= CURRENT_DATE) THEN
 		RAISE EXCEPTION 'Un registrar non può aggiungere/modificare prestiti dopo essere stato licenziato';
