@@ -6,7 +6,7 @@ INSERT INTO Piano (Numero, Descrizione, Superficie) VALUES
 (3, 'Terzo piano', 850.00),
 (4, 'Quarto piano', 900.00),
 (5, 'Quinto piano', 950.00),
-(6, 'Sesto piano', 1000.00),
+(6, 'Sesto piano', 1000.00);
 
 -- Popolamento della tabella Laboratorio
 INSERT INTO Laboratorio (Specializzazione, Piano, Nome) VALUES
@@ -96,22 +96,22 @@ INSERT INTO Registrar (CF, Nome, Cognome, Telefono, Email, Retribuzione, Qualifi
 ('VRDMRS85E01H501Z', 'Maria', 'Verdi', '3385678901', 'maria.verdi6@example.com', 31000.00, 'Museologia', '2022-07-01', NULL);
 
 -- Popolamento della tabella Mostra
-INSERT INTO Mostra (Nome, Prezzo, Descrizione, VotoMedio, Tipo, Curatore) VALUES
-('Impressionismo', 10.00, 'Mostra sulle opere impressioniste del XIX secolo', 4.5, 'Permanente', 'BNCCHR85M01H501Z'),
-('Rinascimento', 12.00, 'Mostra sulle opere rinascimentali italiane', 4.8, 'Permanente', 'VRDLRS75A41H501Z'),
-('Barocco', 11.00, 'Mostra sulle opere barocche europee', 4.7, 'Permanente', 'RDMGMR85F09H501Z'),
-('Modernismo', 9.00, 'Mostra sulle opere moderniste del XX secolo', 4.2, 'Permanente', 'RSSMRC70C14H501Z'),
-('Futurismo', 8.00, 'Mostra sulle opere futuriste italiane', 4.3, 'Permanente', 'LNCCRG85C11H501Z'),
-('Cubismo', 10.00, 'Mostra sulle opere cubiste del XX secolo', 4.6, 'Permanente', 'NTLLSS90A23H501B'),
-('Surrealismo', 7.00, 'Mostra sulle opere surrealiste europee', 4.4, 'Temporanea', 'BNCCHR85M01H501Z'),
-('Romanticismo', 11.00, 'Mostra sulle opere romantiche del XIX secolo', 4.7, 'Temporanea', 'RMDLZN85E09H501Z'),
-('Neoclassicismo', 10.00, 'Mostra sulle opere neoclassiche europee', 4.5, 'Permanente', 'LNCCRG85C11H501Z'),
-('Gotico', 12.00, 'Mostra sulle opere gotiche europee', 4.8, 'Permanente', 'RDMGMR85F09H501Z'),
-('Art Nouveau', 9.00, 'Mostra sulle opere Art Nouveau', 4.3, 'Temporanea', 'BNCCHR85M01H501Z'),
-('Minimalismo', 8.00, 'Mostra sulle opere minimaliste del XX secolo', 4.2, 'Permanente', 'RMDLZN85E09H501Z'),
-('Realismo', 7.00, 'Mostra sulle opere realiste del XIX secolo', 4.4, 'Permanente', 'MRTFRC60E01H501Z'),
-('Astrattismo', 10.00, 'Mostra sulle opere astratte del XX secolo', 4.6, 'Permanente', 'GRNPLC65D05H501Z'),
-('Arte Concettuale', 12.00, 'Mostra sulle opere concettuali', 4.8, 'Temporanea', 'RMDLZN85E09H501Z');
+INSERT INTO Mostra (Nome, Prezzo, Descrizione, VotoMedio, Tipo, Curatore, Stato) VALUES
+('Impressionismo', 10.00, 'Mostra sulle opere impressioniste del XIX secolo', 4.5, TRUE, 'BNCCHR85M01H501Z', TRUE),
+('Rinascimento', 12.00, 'Mostra sulle opere rinascimentali italiane', 4.8, TRUE, 'VRDLRS75A41H501Z', TRUE),
+('Barocco', 11.00, 'Mostra sulle opere barocche europee', 4.7, TRUE, 'RDMGMR85F09H501Z', TRUE),
+('Modernismo', 9.00, 'Mostra sulle opere moderniste del XX secolo', 4.2, TRUE, 'NTLLSS90A23H501B', TRUE),
+('Futurismo', 8.00, 'Mostra sulle opere futuriste italiane', 4.3, TRUE, 'LNCCRG85C11H501Z', TRUE),
+('Cubismo', 10.00, 'Mostra sulle opere cubiste del XX secolo', 4.6, TRUE, 'NTLLSS90A23H501B', TRUE),
+('Surrealismo', 7.00, 'Mostra sulle opere surrealiste europee', 4.4, FALSE, 'BNCCHR85M01H501Z', TRUE),
+('Romanticismo', 11.00, 'Mostra sulle opere romantiche del XIX secolo', 4.7, FALSE, 'RMDLZN85E09H501Z', TRUE),
+('Neoclassicismo', 10.00, 'Mostra sulle opere neoclassiche europee', 4.5, TRUE, 'LNCCRG85C11H501Z', TRUE),
+('Gotico', 12.00, 'Mostra sulle opere gotiche europee', 4.8, TRUE, 'RDMGMR85F09H501Z', TRUE),
+('Art Nouveau', 9.00, 'Mostra sulle opere Art Nouveau', 4.3, FALSE, 'BNCCHR85M01H501Z', TRUE),
+('Minimalismo', 8.00, 'Mostra sulle opere minimaliste del XX secolo', 4.2, TRUE, 'RMDLZN85E09H501Z', TRUE),
+('Realismo', 7.00, 'Mostra sulle opere realiste del XIX secolo', 4.4, TRUE, 'MRTFRC60E01H501Z', TRUE),
+('Astrattismo', 10.00, 'Mostra sulle opere astratte del XX secolo', 4.6, TRUE, 'GRNPLC65D05H501Z', TRUE),
+('Arte Concettuale', 12.00, 'Mostra sulle opere concettuali', 4.8, FALSE, 'RMDLZN85E09H501Z', TRUE);
 
 -- Popolare la tabella MostraTemporanea con 15 voci
 INSERT INTO MostraTemporanea (Nome, DataInizio, DataFine) VALUES
@@ -143,11 +143,11 @@ INSERT INTO OperaInterna (Mostra, Titolo, AnnoProduzione, Provenienza, Tipo, ID_
 ('Impressionismo', 'Impression, soleil levant', 1872, 'Francia', 'Dipinto', 3, 'Pittura', '2023-01-01'),
 ('Rinascimento', 'Mona Lisa', 1503, 'Italia', 'Olio su Tela', 4, 'Pittura', '2023-02-01'),
 ('Barocco', 'Las Meninas', 1656, 'Spagna', 'Dipinto', 2, 'Pittura', '2023-03-01'),
-('Modernismo', 'Les Demoiselles d Avignon', 1907', 'Francia', 'Dipinto', 1, 'Pittura', '2023-04-01'),
+('Modernismo', 'Les Demoiselles d Avignon', 1907, 'Francia', 'Dipinto', 1, 'Pittura', '2023-04-01'),
 ('Futurismo', 'Unique Forms of Continuity in Space', 1913, 'Italia', 'Scultura', 5, 'Scultura', '2023-05-01'),
 ('Cubismo', 'Guernica', 1937, 'Spagna', 'Dipinto', 1, 'Pittura', '2023-06-01'),
 ('Neoclassicismo', 'The Death of Socrates', 1787, 'Francia', 'Dipinto', 12, 'Pittura', '2023-09-01'),
-('Gotico', 'The Garden of Earthly Delights', 1500', 'Olanda', 'Dipinto', 14, 'Pittura', '2023-10-01'),
+('Gotico', 'The Garden of Earthly Delights', 1500, 'Olanda', 'Dipinto', 14, 'Pittura', '2023-10-01'),
 ('Minimalismo', 'Black Square', 1915, 'Russia', 'Dipinto', 8, 'Pittura', '2023-12-01'),
 ('Realismo', 'The Gleaners', 1857, 'Francia', 'Dipinto', 9, 'Pittura', '2024-01-01'),
 ('Astrattismo', 'Composition VIII', 1923, 'Germania', 'Dipinto', 10, 'Pittura', '2024-02-01');
@@ -165,22 +165,22 @@ INSERT INTO OperaEsterna (Mostra, Titolo, AnnoProduzione, Provenienza, Tipo, ID_
 
 -- Popolare la tabella Sala con 15 voci
 INSERT INTO Sala (Piano, Capienza, Tipo, Mostra) VALUES
-(3, 50, 'Temporanea', 'Surrealismo'),
-(2, 100, 'Temporanea', 'Surrealismo'),
-(4, 150, 'Temporanea', 'Romanticismo'),
-(5, 200, 'Temporanea', 'Art Nouveau'),
-(6, 50, 'Temporanea', 'Arte Concettuale'),
-(4, 100, 'Permanente', 'Astrattismo'),
-(1, 150, 'Permanente', 'Realismo'),
-(3, 200, 'Permanente', 'Minimalismo'),
-(5, 50, 'Permanente', 'Gotico'),
-(6, 100, 'Permanente', 'Neoclassicismo'),
-(3, 150, 'Permanente', 'Cubismo'),
-(4, 200, 'Permanente', 'Futurismo'),
-(1, 50, 'Permanente', 'Modernismo'),
-(5, 100, 'Permanente', 'Barocco'),
-(2, 110, 'Permanente', 'Impressionismo'),
-(3, 150, 'Permanente', 'Rinascimento');
+(3, 50, FALSE, 'Surrealismo'),
+(2, 100, FALSE, 'Surrealismo'),
+(4, 150, FALSE, 'Romanticismo'),
+(5, 200, FALSE, 'Art Nouveau'),
+(6, 50, FALSE, 'Arte Concettuale'),
+(4, 100, TRUE, 'Astrattismo'),
+(1, 150, TRUE, 'Realismo'),
+(3, 200, TRUE, 'Minimalismo'),
+(5, 50, TRUE, 'Gotico'),
+(6, 100, TRUE, 'Neoclassicismo'),
+(3, 150, TRUE, 'Cubismo'),
+(4, 200, TRUE, 'Futurismo'),
+(1, 50, TRUE, 'Modernismo'),
+(5, 100, TRUE, 'Barocco'),
+(2, 110, TRUE, 'Impressionismo'),
+(3, 150, TRUE, 'Rinascimento');
 
 -- Popolare la tabella DisposizioneMostreTemporanee con 15 voci
 INSERT INTO DisposizioneMostreTemporanee (ID_MostraTemporanea, Sala) VALUES
@@ -276,7 +276,7 @@ INSERT INTO Ente (Telefono, Nome, Tipo, Email, Indirizzo) VALUES
 ('3300112237', 'Museo Archeologico', 'Museo', 'museoarcheologico@example.com', 'Via dei Fori Imperiali 7, Roma'),
 ('3311223348', 'Galleria Nazionale', 'Galleria', 'gallerianazionale@example.com', 'Piazza San Marco 8, Venezia'),
 ('3322334459', 'Collezione di Arte Orientale', 'Collezione Privata', 'collezionearteorientale@example.com', 'Via Libertà 9, Palermo'),
-('3344559970', 'Museo d'Arte Contemporanea', 'Museo', 'museocontemporanea@example.com', 'Via Poetto 10, Cagliari'),
+('3344559970', 'Museo d Arte Contemporanea', 'Museo', 'museocontemporanea@example.com', 'Via Poetto 10, Cagliari'),
 ('3355723899', 'Galleria Arte Moderna', 'Galleria', 'galleriamodernabari@example.com', 'Via Sparano 11, Bari'),
 ('3367990011', 'Collezione Arte Sacra', 'Collezione Privata', 'collezioneartesacra@example.com', 'Via Palmieri 12, Lecce'),
 ('3370011223', 'Museo delle Scienze Naturali', 'Museo', 'museosciensenaturali@example.com', 'Corso Milano 13, Padova'),
@@ -328,3 +328,19 @@ INSERT INTO Recensione (Timestamp, Commento, Voto, Visitatore, Mostra) VALUES
 ('2024-02-10 23:00:00', 'Interessante', 4, 'laura.deluca@example.com', 'Astrattismo'),
 ('2024-03-10 12:00:00', 'Fantastico', 5, 'giulia.esposito@example.com', 'Arte Concettuale');
 
+INSERT INTO Biglietto (NumeroSeriale, GiornoValidità, Audioguida, Sconto, PrezzoTot, Visitatore, Mostra) VALUES
+('000000000000000', '2023-03-15', FALSE, 0, 10.00, 'laura.deluca@example.com', 'Impressionismo'),
+('000000000000001', '2023-02-15', FALSE, 0, 10.00, 'alice.bianchi@example.com', 'Impressionismo'),
+('000000000000002', '2023-01-15', TRUE, 0, 15.00, 'marco.rossi5@example.com', 'Rinascimento'),
+('000000000000003', '2023-04-15', FALSE, 0, 10.00, 'giulia.esposito@example.com', 'Impressionismo'),
+('000000000000004', '2023-05-15', FALSE, 0, 10.00, 'matteo.russo@example.com', 'Barocco'),
+('000000000000005', '2023-06-15', FALSE, 0, 10.00, 'sara.ferrari@example.com', 'Modernismo'),
+('000000000000006', '2023-07-15', FALSE, 0, 10.00, 'luca.martini@example.com', 'Impressionismo'),
+('000000000000007', '2023-03-15', FALSE, 0, 10.00, 'chiara.romano@example.com', 'Cubismo'),
+('000000000000008', '2023-09-15', FALSE, 0, 10.00, 'andrea.conti@example.com', 'Impressionismo'),
+('000000000000009', '2023-03-15', TRUE, 0, 15.00, 'elena.ricci@example.com', 'Impressionismo'),
+('000000000000010', '2023-04-15', FALSE, 0, 10.00, 'davide.moretti@example.com', 'Neoclassicismo'),
+('000000000000011', '2023-03-15', FALSE, 0, 10.00, 'martina.colombo@example.com', 'Gotico'),
+('000000000000012', '2023-02-15', FALSE, 0, 10.00, 'francesco.marino@example.com', 'Impressionismo'),
+('000000000000013', '2021-02-15', FALSE, 0, 9.00, 'alessia.greco@example.com', 'Art Nouveau'),
+('000000000000014', '2023-01-15', FALSE, 0, 7.00, 'simone.barbieri@example.com', 'Surrealismo');
