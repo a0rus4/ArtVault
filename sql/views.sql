@@ -101,32 +101,24 @@ CREATE VIEW SalarioDipendenti AS
 	SELECT
 		'Curatore' AS Ruolo,
 		C.CF, C.Nome, C.Cognome, C.Telefono, C.Email, C.Retribuzione,
-		C.Qualifica,
-		DataAssunzione DATE,
-		DataLicenziamento DATE,
+		C.Qualifica, C.DataAssunzione, C. DATE
 	FROM Curatore C
 	UNION
 		SELECT
 			'Restauratore' AS Ruolo,
-			R.CF,
-			R.Nome,
-			R.Cognome,
-			R.Retribuzione AS Salario
+			R.CF, R.Nome, R.Cognome, R.Telefono, R.Email, R.Retribuzione,
+			R.Qualifica, R.DataAssunzione, R. DATE
 		FROM Restauratore R
 	UNION
 		SELECT
 			'Registrar' AS Ruolo,
-			Reg.CF,
-			Reg.Nome,
-			Reg.Cognome,
-			Reg.Retribuzione AS Salario
+			Reg.CF, R.Nome, Reg.Cognome, Reg.Telefono, Reg.Email, Reg.Retribuzione,
+			Reg.Qualifica, Reg.DataAssunzione, Reg. DATE
 		FROM Registrar Reg
 	UNION
 		SELECT
 			'Direttore' AS Ruolo,
-			D.CF,
-			D.Nome,
-			D.Cognome,
-			D.Retribuzione AS Salario
+			D.CF, D.Nome, D.Cognome, D.Telefono, D.Email, D.Retribuzione,
+			D.Qualifica, D.DataAssunzione, D. DATE
 		FROM Direttore D
 ;
