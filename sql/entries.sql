@@ -203,11 +203,11 @@ INSERT INTO ComposizioneMostreTemporanee (ID_MostraTemporanea, ID_OperaEsterna) 
 
 -- Popolare la tabella Evento con 15 voci
 INSERT INTO Evento (Sala, Data, Nome, Descrizione, Direttore) VALUES
-(1, '2022-05-23', 'Assemblea', 'Descrizione dell Evento 1', 'RDMGRA85F09H501Z'),
-(4, '2019-02-10', 'Evento 2', 'Descrizione dell Evento 2', 'RDMGRA85F09H501Z'),
-(2, '2018-03-10', 'Evento 3', 'Descrizione dell Evento 3', 'RDMGRA85F09H501Z'),
-(3, '2018-04-10', 'Evento 4', 'Descrizione dell Evento 4', 'RDMGRA85F09H501Z'),
-(5, '2019-05-10', 'Evento 5', 'Descrizione dell Evento 5', 'RDMGRA85F09H501Z');
+(1, '2022-05-23', 'Assemblea', 'Descrizione dell Evento 1', 'BNCLRA75A41H501Z'),
+(4, '2019-02-10', 'Evento 2', 'Descrizione dell Evento 2', 'BLUCST90M20H501Z'),
+(2, '2018-03-10', 'Evento 3', 'Descrizione dell Evento 3', 'MRTGRC60E01H501Z'),
+(3, '2018-04-10', 'Evento 4', 'Descrizione dell Evento 4', 'MRTGRC60E01H501Z'),
+(5, '2019-05-10', 'Evento 5', 'Descrizione dell Evento 5', 'BLUCST90M20H501Z');
 
 -- Popolare la tabella PartecipazioneEventoCuratore con 15 voci
 INSERT INTO PartecipazioneEventoCuratore (EventoSala, EventoData, Curatore) VALUES
