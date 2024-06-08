@@ -75,7 +75,7 @@ CREATE TABLE Registrar (
 -- (per le mostre temporanee, ci dicono a grandi linee quanta probabilità c'è che avverrà una sua edizione a breve)
 CREATE TABLE Mostra (
     Nome VARCHAR(255) PRIMARY KEY,
-    Prezzo DECIMAL(3,2),
+    Prezzo DECIMAL(4,2),
     Descrizione TEXT,
     VotoMedio DECIMAL(2,1),
     Tipo BOOLEAN,
@@ -286,7 +286,7 @@ CREATE TABLE Biglietto (
     GiornoValidità DATE,
     Audioguida BOOLEAN,
     Sconto INT,
-    PrezzoTot DECIMAL(3,2),
+    PrezzoTot DECIMAL(4,2),
     Visitatore VARCHAR(255),
     Mostra VARCHAR(255),
     FOREIGN KEY (Visitatore) REFERENCES Visitatore(Email) ON DELETE CASCADE ON UPDATE CASCADE,
