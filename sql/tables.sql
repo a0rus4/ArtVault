@@ -77,7 +77,7 @@ CREATE TABLE Mostra (
     Nome VARCHAR(255) PRIMARY KEY,
     Prezzo DECIMAL(3,2),
     Descrizione TEXT,
-    VotoMedio DECIMAL(1,1),
+    VotoMedio DECIMAL(2,1),
     Tipo BOOLEAN,
     Curatore CHAR(16),
     Stato BOOLEAN,
