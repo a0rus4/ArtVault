@@ -276,7 +276,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM Restauro
-        WHERE ID/Opera = NEW.ID
+        WHERE ID\Opera = NEW.ID
         AND DataFine IS NULL
     ) THEN
         RAISE EXCEPTION 'L''opera è attualmente in restauro e non può essere esposta in una mostra.';
