@@ -304,7 +304,7 @@ BEGIN
     numero_recensioni = (SELECT COUNT(*) FROM Recensione WHERE Mostra = NEW.Mostra) + 1;
 	somma_recensioni = (SELECT SUM(Voto) FROM Recensione WHERE Mostra = NEW.Mostra) + NEW.Voto;
 	media_recensioni = somma_recensioni / somma_recensioni;
-    UPDATE Mostra SET VotoMedio = media_recensioni WHERE id = NEW.mostra_id;
+    UPDATE Mostra SET VotoMedio = media_recensioni WHERE Nome = NEW.Mostra;
 
     RETURN NEW;
 END;
@@ -363,7 +363,7 @@ DECLARE
 BEGIN
 	-- Un registrar licenziato non può aggiungere o modificare prestiti
 	SELECT DataLicenziamento INTO data_licenziamento FROM Registrar
-		WHERE CF = NEW.Registar;
+		WHERE CF = NEW.Registrar;
 	
 	IF (data_licenziamento IS NOT NULL AND data_licenziamento <= CURRENT_DATE) THEN
 		RAISE EXCEPTION 'Un registrar non può aggiungere/modificare prestiti dopo essere stato licenziato';
@@ -405,7 +405,7 @@ BEGIN
     IF NEW.ID_OperaInterna IS NOT NULL AND EXISTS (
         SELECT 1
         FROM Restauro R
-        WHERE R.OperaID = NEW.ID_OperaInterna
+        WHERE R.ID_Opera = NEW.ID_OperaInterna
         AND R.DataFine IS NULL
     ) THEN
         RAISE EXCEPTION 'L''opera interna è attualmente in restauro e non può essere prestata.';
