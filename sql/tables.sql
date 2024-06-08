@@ -164,8 +164,10 @@ CREATE TABLE Evento (
     Data DATE,
     Nome VARCHAR(255),
     Descrizione TEXT,
+	Direttore CHAR(16),
     PRIMARY KEY (Sala, Data),
-    FOREIGN KEY (Sala) REFERENCES Sala(ID) ON DELETE CASCADE 
+    FOREIGN KEY (Sala) REFERENCES Sala(ID) ON DELETE CASCADE,
+	FOREIGN KEY (Direttore) REFERENCES Direttore(CF)
     --se si elimina la sala, l evento continua ad esistere, se si aggiorna si aggiorna anche l evento 
 );
 
