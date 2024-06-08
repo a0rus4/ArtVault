@@ -109,8 +109,8 @@ CREATE TABLE OperaInterna (
     Specializzazione VARCHAR(255),
     DataUltimoRestauro DATE,
 	MostraPrecedente VARCHAR(255),
-    FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON DELETE SET NULL ON UPDATE CASCSADE,
-	FOREIGN KEY (MostraPrecedente) REFERENCES Mostra(Nome) ON DELETE SET NULL ON UPDATE CASCSADE,
+    FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON DELETE SET NULL ON UPDATE CASCADE,
+	FOREIGN KEY (MostraPrecedente) REFERENCES Mostra(Nome) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (ID_Artista) REFERENCES Artista(ID)
    
     --se vengono eliminate le righe mostra inerenti ad un opera, quest ultima continua ad esistere 
