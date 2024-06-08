@@ -6,7 +6,7 @@ INSERT INTO Piano (Numero, Descrizione, Superficie) VALUES
 (3, 'Terzo piano', 850.00),
 (4, 'Quarto piano', 900.00),
 (5, 'Quinto piano', 950.00),
-(6, 'Sesto piano', 1000.00),
+(6, 'Sesto piano', 1000.00);
 
 -- Popolamento della tabella Laboratorio
 INSERT INTO Laboratorio (Specializzazione, Piano, Nome) VALUES
