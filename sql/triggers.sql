@@ -28,7 +28,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerEvento
+CREATE OR REPLACE TRIGGER TriggerEvento
 BEFORE INSERT OR UPDATE ON Evento
 FOR EACH ROW
 EXECUTE FUNCTION trigger_evento();
@@ -38,6 +38,8 @@ EXECUTE FUNCTION trigger_evento();
 -- Trigger per verificare la presenza di mostre temporanee uguali nello stesso periodo temporale
 CREATE OR REPLACE FUNCTION trigger_mostra_temporanea()
 RETURNS TRIGGER AS $$
+DECLARE
+	sala_mostra INT;
 BEGIN
     -- Verifica sovrapposizione mostre temporanee con lo stesso nome
     IF EXISTS (
@@ -54,21 +56,29 @@ BEGIN
     END IF;
 
     -- Verifica sovrapposizione con eventi nella stessa sala
-    IF EXISTS (
-        SELECT 1
-        FROM Evento E
-        WHERE E.Sala = NEW.Sala
-        AND NEW.DataInizio <= E.Data
-        AND NEW.DataFine >= E.Data
-    ) THEN
-        RAISE EXCEPTION 'La mostra temporanea non può essere aggiunta perché si sovrappone ad un evento già programmato nella sala.';
-    END IF;
+    IF TG_OP = 'UPDATE' THEN
+		SELECT Sala INTO sala_mostra FROM DisposizioneMostreTemporanee
+			WHERE ID_MostraTemporanea = New.ID
+			AND (
+				(NEW.DataInizio <= DataFine AND NEW.DataInizio >= DataInizio) OR
+            	(NEW.DataFine >= DataInizio AND NEW.DataFine <= DataFine) OR
+            	(NEW.DataInizio <= DataInizio AND NEW.DataFine >= DataFine)
+			)
+			LIMIT 1;
+		
+		IF sala_mostra IS NOT NULL AND EXISTS (
+			SELECT 1 FROM Evento E WHERE E.Sala = sala_mostra
+				AND New.DataInizio <= E.Data AND New.DataFine >= E.Data
+		) THEN
+			RAISE EXCEPTION 'La mostra temporanea non può essere aggiornata perché si sovrappone ad un evento già programmato nella sala.';
+		END IF;
+	END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerMostraTemporanea
+CREATE OR REPLACE TRIGGER TriggerMostraTemporanea
 BEFORE INSERT OR UPDATE ON MostraTemporanea
 FOR EACH ROW
 EXECUTE FUNCTION trigger_mostra_temporanea();
@@ -94,6 +104,7 @@ BEGIN
         RAISE EXCEPTION 'Impossibile esporre una mostra temporanea in una sala permanente.';
     END IF;
 	
+	-- Controlla sovrapposizione con altre mostre temporanee - stessa sala, stesso periodo
     IF EXISTS (
         SELECT 1 
         FROM DisposizioneMostreTemporanee DMT
@@ -103,11 +114,20 @@ BEGIN
     ) THEN
         RAISE EXCEPTION 'La sala è già occupata da un''altra mostra temporanea in questo periodo.';
     END IF;
+	
+	-- Verifica la sovrapposizione con eventi nella stessa sala e nello stesso periodo
+	IF EXISTS (
+		SELECT 1 FROM Evento E WHERE E.Sala = New.Sala
+			AND dataInizio <= E.Data AND dataFine >= E.Data
+	) THEN
+		RAISE EXCEPTION 'La sala è già occupata da un evento in questo periodo.';
+	END IF;
+	
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerDisposizioneMostreTemporanee
+CREATE OR REPLACE TRIGGER TriggerDisposizioneMostreTemporanee
 BEFORE INSERT OR UPDATE ON DisposizioneMostreTemporanee
 FOR EACH ROW
 EXECUTE FUNCTION trigger_disposizione_mostre_temporanee();
@@ -231,7 +251,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerRestauro
+CREATE OR REPLACE TRIGGER TriggerRestauro
 BEFORE INSERT OR UPDATE ON Restauro
 FOR EACH ROW
 EXECUTE FUNCTION trigger_restauro();
@@ -265,7 +285,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerOperaInterna
+CREATE OR REPLACE TRIGGER TriggerOperaInterna
 BEFORE INSERT OR UPDATE ON OperaInterna
 FOR EACH ROW
 EXECUTE FUNCTION trigger_opera_interna();
@@ -288,7 +308,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerRecensione
+CREATE OR REPLACE TRIGGER TriggerRecensione
 AFTER INSERT ON Recensione
 FOR EACH ROW
 EXECUTE FUNCTION aggiorna_media_valutazioni();
@@ -324,7 +344,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerComposizioneMostreTemporanee
+CREATE OR REPLACE TRIGGER TriggerComposizioneMostreTemporanee
 BEFORE INSERT OR UPDATE ON ComposizioneMostreTemporanee
 FOR EACH ROW
 EXECUTE FUNCTION trigger_composizione_mostre_temporanee();
@@ -393,7 +413,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerPrestito
+CREATE OR REPLACE TRIGGER TriggerPrestito
 BEFORE INSERT OR UPDATE ON Prestito
 FOR EACH ROW
 EXECUTE FUNCTION trigger_prestito();
@@ -419,7 +439,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerSala
+CREATE OR REPLACE TRIGGER TriggerSala
 BEFORE INSERT OR UPDATE ON Sala
 FOR EACH ROW
 EXECUTE FUNCTION trigger_sala();
@@ -441,7 +461,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerMostra
+CREATE OR REPLACE TRIGGER TriggerMostra
 BEFORE INSERT OR UPDATE ON Mostra
 FOR EACH ROW
 EXECUTE FUNCTION trigger_mostra();
@@ -466,7 +486,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerPartecipazioneEventoCuratore
+CREATE OR REPLACE TRIGGER TriggerPartecipazioneEventoCuratore
 BEFORE INSERT OR UPDATE ON PartecipazioneEventoCuratore
 FOR EACH ROW
 EXECUTE FUNCTION trigger_partecipazione_evento_curatore();
@@ -489,7 +509,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerPartecipazioneEventoRestauratore
+CREATE OR REPLACE TRIGGER TriggerPartecipazioneEventoRestauratore
 BEFORE INSERT OR UPDATE ON PartecipazioneEventoRestauratore
 FOR EACH ROW
 EXECUTE FUNCTION trigger_partecipazione_evento_restauratore();
@@ -512,7 +532,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerPartecipazioneEventoRegistrar
+CREATE OR REPLACE TRIGGER TriggerPartecipazioneEventoRegistrar
 BEFORE INSERT OR UPDATE ON PartecipazioneEventoRegistrar
 FOR EACH ROW
 EXECUTE FUNCTION trigger_partecipazione_evento_registrar();
@@ -537,17 +557,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER TriggerRegistroModificheCuratore
+CREATE OR REPLACE TRIGGER TriggerRegistroModificheCuratore
 BEFORE INSERT OR UPDATE ON RegistroModificheCuratore
 FOR EACH ROW
 EXECUTE FUNCTION trigger_registro_modifiche();
 
-CREATE TRIGGER TriggerRegistroModificheRestauratore
+CREATE OR REPLACE TRIGGER TriggerRegistroModificheRestauratore
 BEFORE INSERT OR UPDATE ON RegistroModificheRestauratore
 FOR EACH ROW
 EXECUTE FUNCTION trigger_registro_modifiche();
 
-CREATE TRIGGER TriggerRegistroModificheRegistrar
+CREATE OR REPLACE TRIGGER TriggerRegistroModificheRegistrar
 BEFORE INSERT OR UPDATE ON RegistroModificheRegistrar
 FOR EACH ROW
 EXECUTE FUNCTION trigger_registro_modifiche();
