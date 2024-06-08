@@ -282,7 +282,7 @@ CREATE TABLE Recensione (
 );
 
 CREATE TABLE Biglietto (
-    NumeroSeriale INT PRIMARY KEY,
+    NumeroSeriale VARCHAR(15) PRIMARY KEY,
     GiornoValidità DATE,
     Audioguida BOOLEAN,
     Sconto INT,
