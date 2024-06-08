@@ -159,7 +159,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM Restauro R2
-        WHERE R2.OperaID = NEW.OperaID
+        WHERE R2.ID_Opera = NEW.ID_Opera
         AND R2.ID <> NEW.ID
         AND (
             (R2.DataFine IS NULL AND (NEW.DataInizio >= R2.DataInizio OR NEW.DataFine >= R2.DataInizio OR New.DataFine IS NULL)) OR
@@ -173,9 +173,9 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1
         FROM Restauratore
-        WHERE Restauratore.ID = NEW.RestauratoreID
+        WHERE Restauratore.CF = NEW.Restauratore
         AND Restauratore.Specializzazione = (
-            SELECT Specializzazione FROM OperaInterna WHERE ID = NEW.OperaID
+            SELECT Specializzazione FROM OperaInterna WHERE ID = NEW.ID_Opera
         )
     ) THEN
         RAISE EXCEPTION 'Il restauratore non è specializzato nell''opera da restaurare.';
@@ -188,38 +188,40 @@ BEGIN
 			SET MostraPrecedente = (
 				SELECT Mostra
 				FROM OperaInterna
-				WHERE ID = NEW.OperaID
+				WHERE ID = NEW.ID_Opera
 			)
 			WHERE ID = NEW.ID;
         
         -- Rimuove l'opera dalla mostra
         UPDATE OperaInterna
         SET Mostra = NULL
-        WHERE ID = NEW.OperaID;
+        WHERE ID = NEW.ID_Opera;
     ELSE
-		IF (TG_OP = UPDATE AND OLD.DataFine IS NOT NULL) THEN
+		IF (TG_OP = 'UPDATE' AND OLD.DataFine IS NOT NULL) THEN
 			RAISE EXCEPTION 'Non puoi modificare la data di fine di un restauro già terminato';
 		END IF;
 		
 	    -- Ottieni la data di fine massima per l'opera
         SELECT MAX(DataFine) INTO data_ultimo_restauro
 			FROM Restauro
-			WHERE OperaID = NEW.OperaID;
+			WHERE ID_Opera = NEW.ID_Opera;
 
 		IF (NEW.DataFine > data_ultimo_restauro) THEN
 			-- Aggiorna l'attributo DataUltimoRestauro nell'entità OperaInterna
 			UPDATE OperaInterna
 				SET DataUltimoRestauro = NEW.DataFine
-				WHERE ID = NEW.OperaID;
+				WHERE ID = NEW.ID_Opera;
 		END IF;
 		
         -- Reinserisce l'opera nella mostra precedente se DataFine non è NULL e MostraPrecedente non è NULL
-        mostra_precedente := (SELECT MostraPrecedente FROM Restauro WHERE ID = NEW.ID);
+        mostra_precedente := (SELECT MostraPrecedente 
+							  	FROM Restauro JOIN OperaInterna ON ID_Opera = OperaInterna.ID
+							  	WHERE ID_Opera = NEW.ID_Opera);
 
         IF mostra_precedente IS NOT NULL THEN
             UPDATE OperaInterna
 				SET Mostra = mostra_precedente
-				WHERE ID = NEW.OperaID;
+				WHERE ID = NEW.ID_Opera;
             
             -- Rimuove la mostra precedente dal restauro
             UPDATE Restauro
@@ -231,18 +233,18 @@ BEGIN
 		IF TG_OP = 'INSERT' THEN
 			UPDATE Restauratore
 				SET NumeroRestauri = NumeroRestauri + 1
-				WHERE id = NEW.Restauratore;
+				WHERE CF = NEW.Restauratore;
 		ELSIF TG_OP = 'UPDATE' THEN
 			IF OLD.Restauratore != NEW.Restauratore THEN
 				-- Decrementa il contatore di restauri per il vecchio restauratore
 				UPDATE Restauratore
 					SET NumeroRestauri = NumeroRestauri - 1
-					WHERE id = OLD.Restauratore;
+					WHERE CF = OLD.Restauratore;
 
 				-- Incrementa il contatore di restauri per il nuovo restauratore
 				UPDATE Restauratore
 					SET NumeroRestauri = NumeroRestauri + 1
-					WHERE id = NEW.Restauratore;
+					WHERE CF = NEW.Restauratore;
 			END IF;
 		END IF;
     END IF;
@@ -550,8 +552,14 @@ BEGIN
 		WHERE CF = NEW.Direttore;
 	
     IF (data_licenziamento IS NOT NULL AND CURRENT_DATE > data_licenziamento) THEN
-        RAISE EXCEPTION 'Un direttore non può eseguire modifiche nel registro dei dipendenti.';
-    END IF;
+		IF (TG_TABLE_NAME = 'RegistroModificheCuratore') THEN
+        	RAISE EXCEPTION 'Il direttore % non può eseguire modifiche sul dipendente % dopo essere stato licenziato.', NEW.Direttore, NEW.Curatore;
+    	ELSEIF (TG_TABLE_NAME = 'RegistroModificheRestauratore') THEN
+			RAISE EXCEPTION 'Il direttore % non può eseguire modifiche sul dipendente % dopo essere stato licenziato.', NEW.Direttore, NEW.Restauratore;
+		ELSEIF (TG_TABLE_NAME = 'RegistroModificheRegistrar') THEN
+			RAISE EXCEPTION 'Il direttore % non può eseguire modifiche sul dipendente % dopo essere stato licenziato.', NEW.Direttore, NEW.Registrar;
+		END IF;
+	END IF;
 
     RETURN NEW;
 END;

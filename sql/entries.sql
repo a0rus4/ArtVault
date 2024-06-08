@@ -260,7 +260,7 @@ INSERT INTO RegistroModificheRegistrar (Timestamp, Descrizione, Registrar, Diret
 ('2023-05-10 14:00:00', 'Aumento', 'VRDLRS75A41H501L', 'RSSMRA85M01H501Z');
 
 -- Popolare la tabella Restauro con 15 voci
-INSERT INTO Restauro (OperaID, RestauratoreID, DataInizio, DataFine, LaboratorioID) VALUES
+INSERT INTO Restauro (ID_Opera, Restauratore, DataInizio, DataFine, ID_Laboratorio) VALUES
 (1, 'RSSMRR70C14H501Z', '2022-01-01', '2023-01-10', 'Pittura'),
 (1, 'RSSMRR70C14H501Z', '2012-02-01', '2013-02-10', 'Pittura'),
 (5, 'VRDLRT75A41H501Z', '2023-03-01', '2023-03-10', 'Scultura'),
