@@ -1,3 +1,6 @@
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+
 CREATE TABLE Piano (
     Numero INT PRIMARY KEY,
     Descrizione VARCHAR(255),
