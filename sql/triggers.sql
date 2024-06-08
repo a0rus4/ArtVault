@@ -100,7 +100,7 @@ BEGIN
     FROM Sala
     WHERE ID = NEW.Sala;
 
-    IF tipoSala = 1 THEN
+    IF tipoSala IS TRUE THEN
         RAISE EXCEPTION 'Impossibile esporre una mostra temporanea in una sala permanente.';
     END IF;
 	
@@ -266,8 +266,8 @@ BEGIN
 	IF NEW.Mostra IS NOT NULL AND EXISTS (
 		SELECT 1
 		FROM Mostra
-		WHERE ID = NEW.Mostra
-		AND Tipo != 1
+		WHERE Nome = NEW.Mostra
+		AND Tipo IS FALSE
 	) THEN
 		RAISE EXCEPTION 'L''opera può essere esposta solo in mostre permanenti.';
 	END IF;
@@ -297,7 +297,7 @@ RETURNS TRIGGER AS $$
 DECLARE
 	numero_recensioni INT;
 	somma_recensioni INT;
-	media_recensioni DECIMAL(1,1);
+	media_recensioni DECIMAL(2,1);
 BEGIN
     numero_recensioni = (SELECT COUNT(*) FROM Recensione WHERE Mostra = NEW.Mostra) + 1;
 	somma_recensioni = (SELECT SUM(Voto) FROM Recensione WHERE Mostra = NEW.Mostra) + NEW.Voto;
@@ -430,7 +430,7 @@ BEGIN
         SELECT Tipo INTO tipo_mostra FROM Mostra WHERE Nome = NEW.Mostra;
 
         -- Controllo se il tipo della mostra e il tipo della sala coincidono
-        IF NEW.Tipo <> tipo_mostra THEN
+        IF NEW.Tipo IS NOT tipo_mostra THEN
             RAISE EXCEPTION 'Impossibile aggiungere o modificare la mostra nella sala. Il tipo di mostra e il tipo di sala non coincidono.';
         END IF;
     END IF;
