@@ -9,9 +9,9 @@ DECLARE
 BEGIN
 	-- Verifica che il direttore non sia licenziato in quel periodo
 	SELECT DataLizenziamento INTO data_licenziamento FROM Direttore 
-	WHERE CF = NEW.Direttore
+		WHERE CF = NEW.Direttore;
 	
-	IF data_licenziamento < NEW.Data THEN
+	IF (data_licenziamento < NEW.Data) THEN
 		RAISE EXCEPTION 'Il direttore non può organizzare un evento in una data successiva al suo licenziamento';
 	END IF;
 	
@@ -128,7 +128,7 @@ DECLARE
 BEGIN
     -- Verifica che il restauratore non sia licenziato in quel periodo
 	SELECT DataLizenziamento INTO data_licenziamento FROM Restauratore 
-		WHERE CF = NEW.Restauratore
+		WHERE CF = NEW.Restauratore;
 	
 	IF (data_licenziamento IS NOT NULL AND New.DataFine IS NOT NULL 
 			AND data_licenziamento < New.DataFine) THEN
@@ -165,12 +165,12 @@ BEGIN
 	-- Memorizza la mostra a cui apparteneva l'opera se DataFine è NULL
     IF NEW.DataFine IS NULL THEN
         UPDATE Restauro
-        SET MostraPrecedente = (
-            SELECT Mostra
-            FROM OperaInterna
-            WHERE ID = NEW.OperaID
-        )
-        WHERE ID = NEW.ID;
+			SET MostraPrecedente = (
+				SELECT Mostra
+				FROM OperaInterna
+				WHERE ID = NEW.OperaID
+			)
+			WHERE ID = NEW.ID;
         
         -- Rimuove l'opera dalla mostra
         UPDATE OperaInterna
@@ -183,14 +183,14 @@ BEGIN
 		
 	    -- Ottieni la data di fine massima per l'opera
         SELECT MAX(DataFine) INTO data_ultimo_restauro
-        FROM Restauro
-        WHERE OperaID = NEW.OperaID;
+			FROM Restauro
+			WHERE OperaID = NEW.OperaID;
 
 		IF (NEW.DataFine > data_ultimo_restauro) THEN
 			-- Aggiorna l'attributo DataUltimoRestauro nell'entità OperaInterna
 			UPDATE OperaInterna
-			SET DataUltimoRestauro = NEW.DataFine
-			WHERE ID = NEW.OperaID;
+				SET DataUltimoRestauro = NEW.DataFine
+				WHERE ID = NEW.OperaID;
 		END IF;
 		
         -- Reinserisce l'opera nella mostra precedente se DataFine non è NULL e MostraPrecedente non è NULL
@@ -198,32 +198,33 @@ BEGIN
 
         IF mostra_precedente IS NOT NULL THEN
             UPDATE OperaInterna
-            SET Mostra = mostra_precedente
-            WHERE ID = NEW.OperaID;
+				SET Mostra = mostra_precedente
+				WHERE ID = NEW.OperaID;
             
             -- Rimuove la mostra precedente dal restauro
             UPDATE Restauro
-            SET MostraPrecedente = NULL
-            WHERE ID = NEW.ID;
+				SET MostraPrecedente = NULL
+				WHERE ID = NEW.ID;
         END IF;
 		
 		-- Se è un insert, incrementa direttamente (sempre se DataFine != NULl)
 		IF TG_OP = 'INSERT' THEN
 			UPDATE Restauratore
-			SET NumeroRestauri = NumeroRestauri + 1
-			WHERE id = NEW.Restauratore;
+				SET NumeroRestauri = NumeroRestauri + 1
+				WHERE id = NEW.Restauratore;
 		ELSIF TG_OP = 'UPDATE' THEN
 			IF OLD.Restauratore != NEW.Restauratore THEN
 				-- Decrementa il contatore di restauri per il vecchio restauratore
 				UPDATE Restauratore
-				SET NumeroRestauri = NumeroRestauri - 1
-				WHERE id = OLD.Restauratore;
+					SET NumeroRestauri = NumeroRestauri - 1
+					WHERE id = OLD.Restauratore;
 
 				-- Incrementa il contatore di restauri per il nuovo restauratore
 				UPDATE Restauratore
-				SET NumeroRestauri = NumeroRestauri + 1
-				WHERE id = NEW.Restauratore;
+					SET NumeroRestauri = NumeroRestauri + 1
+					WHERE id = NEW.Restauratore;
 			END IF;
+		END IF;
     END IF;
 
     RETURN NEW;
@@ -278,8 +279,8 @@ DECLARE
 	somma_recensioni INT;
 	media_recensioni DECIMAL(1,1);
 BEGIN
-    numero_recensioni = (SELECT COUNT(*) FROM Recensione WHERE Mostra = NEW.Mostra) + 1
-	somma_recensioni = (SELECT SUM(Voto) FROM Recensione WHERE Mostra = NEW.Mostra) + NEW.Voto
+    numero_recensioni = (SELECT COUNT(*) FROM Recensione WHERE Mostra = NEW.Mostra) + 1;
+	somma_recensioni = (SELECT SUM(Voto) FROM Recensione WHERE Mostra = NEW.Mostra) + NEW.Voto;
 	media_recensioni = somma_recensioni / somma_recensioni;
     UPDATE Mostra SET VotoMedio = media_recensioni WHERE id = NEW.mostra_id;
 
@@ -288,7 +289,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER TriggerRecensione
-AFTER INSERT ON Recensioni
+AFTER INSERT ON Recensione
 FOR EACH ROW
 EXECUTE FUNCTION aggiorna_media_valutazioni();
 
@@ -326,21 +327,21 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER TriggerComposizioneMostreTemporanee
 BEFORE INSERT OR UPDATE ON ComposizioneMostreTemporanee
 FOR EACH ROW
-EXECUTE FUNCTION trigger_prestito();
+EXECUTE FUNCTION trigger_composizione_mostre_temporanee();
 
 -- Per le opere esterne sappiamo già che non possono essere esposte in mostre permanenti perchè vengono inserite
      -- nella tabella "ComposizioneMostreTemporanee" che sfruttano un ID univoco delle mostre temporanee
 -- Vincolo 11 & 12 & 17 & 18
 -- Trigger per verificare se un'opera esterna o interna è già in prestito durante un certo periodo
 -- Trigger per verificare se l'opera è in mostra permanente o in restauro
-CREATE OR REPLACE FUNCTION trigger_verifica_prestito_conflitto_e_stato()
+CREATE OR REPLACE FUNCTION trigger_prestito()
 RETURNS TRIGGER AS $$
 DECLARE
 	data_licenziamento DATE;
 BEGIN
 	-- Un registrar licenziato non può aggiungere o modificare prestiti
 	SELECT DataLicenziamento INTO data_licenziamento FROM Registrar
-		WHERE CF = New.Registar
+		WHERE CF = New.Registar;
 	
 	IF (data_licenziamento IS NOT NULL AND data_licenziamento <= CURRENT_DATE) THEN
 		RAISE EXCEPTION 'Un registrar non può aggiungere/modificare prestiti dopo essere stato licenziato';
@@ -400,15 +401,16 @@ EXECUTE FUNCTION trigger_prestito();
 -- Trigger per il controllo della corrispondenza del Tipo tra "Sala" e "Mostra"
 CREATE OR REPLACE FUNCTION trigger_sala()
 RETURNS TRIGGER AS $$
+DECLARE
+	tipo_mostra BOOLEAN;
 BEGIN
     -- Controllo se la Mostra è NULL, in tal caso non ci sono restrizioni
     IF NEW.Mostra IS NOT NULL THEN
         -- Ottengo il tipo della mostra
-        DECLARE tipoMostra BOOLEAN;
-        SELECT Tipo INTO tipoMostra FROM Mostra WHERE Nome = NEW.Mostra;
+        SELECT Tipo INTO tipo_mostra FROM Mostra WHERE Nome = NEW.Mostra;
 
         -- Controllo se il tipo della mostra e il tipo della sala coincidono
-        IF NEW.Tipo <> tipoMostra THEN
+        IF NEW.Tipo <> tipo_mostra THEN
             RAISE EXCEPTION 'Impossibile aggiungere o modificare la mostra nella sala. Il tipo di mostra e il tipo di sala non coincidono.';
         END IF;
     END IF;
@@ -429,9 +431,9 @@ DECLARE
 	data_licenziamento DATE;
 BEGIN
 	SELECT DataLizenziamento INTO data_licenziamento FROM Curatore 
-	WHERE CF = NEW.Curatore
+	WHERE CF = NEW.Curatore;
 	
-    IF data_licenziamento IS NOT NULL THEN
+    IF (data_licenziamento IS NOT NULL) THEN
         RAISE EXCEPTION 'Un curatore licenziato non può essere associato ad una mostra.';
     END IF;
 
@@ -454,7 +456,7 @@ DECLARE
 	data_licenziamento DATE;
 BEGIN
 	SELECT DataLizenziamento INTO data_licenziamento FROM Curatore 
-	WHERE CF = NEW.Curatore
+		WHERE CF = NEW.Curatore;
 	
     IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
         RAISE EXCEPTION 'Un curatore non può partecipare ad un evento successivo al suo licenziamento.';
@@ -477,7 +479,7 @@ DECLARE
 	data_licenziamento DATE;
 BEGIN
 	SELECT DataLizenziamento INTO data_licenziamento FROM Restauratore 
-	WHERE CF = NEW.Restauratore
+		WHERE CF = NEW.Restauratore;
 	
     IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
         RAISE EXCEPTION 'Un restauratore non può partecipare ad un evento successivo al suo licenziamento.';
@@ -500,7 +502,7 @@ DECLARE
 	data_licenziamento DATE;
 BEGIN
 	SELECT DataLizenziamento INTO data_licenziamento FROM Registrar 
-	WHERE CF = NEW.Registrar
+		WHERE CF = NEW.Registrar;
 	
     IF (data_licenziamento IS NOT NULL AND New.EventoData > data_licenziamento) THEN
         RAISE EXCEPTION 'Un registrar non può partecipare ad un evento successivo al suo licenziamento.';
@@ -525,7 +527,7 @@ DECLARE
 	data_licenziamento DATE;
 BEGIN
 	SELECT DataLizenziamento INTO data_licenziamento FROM Direttore 
-	WHERE CF = NEW.Direttore
+		WHERE CF = NEW.Direttore;
 	
     IF (data_licenziamento IS NOT NULL AND CURRENT_DATE > data_licenziamento) THEN
         RAISE EXCEPTION 'Un direttore non può eseguire modifiche nel registro dei dipendenti.';
