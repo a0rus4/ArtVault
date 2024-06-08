@@ -96,25 +96,14 @@ CREATE VIEW PartecipazioniEventi AS
 	LEFT JOIN Registrar Reg ON PERG.Registrar = Reg.CF
 ;
 
--- Vista che calcola il voto medio delle mostre
-CREATE VIEW VotoMedioMostre AS
-	SELECT
-		M.Nome AS NomeMostra,
-		M.Descrizione,
-		AVG(R.Voto) AS VotoMedio
-	FROM Mostra M
-	LEFT JOIN Recensione R ON M.Nome = R.Mostra
-	GROUP BY M.Nome, M.Descrizione
-;
-
--- Vista che mostra il salario di ogni dipendente
+-- Vista che mostra le informazioni di ogni dipendente
 CREATE VIEW SalarioDipendenti AS
 	SELECT
 		'Curatore' AS Ruolo,
-		C.CF,
-		C.Nome,
-		C.Cognome,
-		C.Retribuzione AS Salario
+		C.CF, C.Nome, C.Cognome, C.Telefono, C.Email, C.Retribuzione,
+		C.Qualifica,
+		DataAssunzione DATE,
+		DataLicenziamento DATE,
 	FROM Curatore C
 	UNION
 		SELECT

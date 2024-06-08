@@ -267,11 +267,7 @@ BEGIN
 		SELECT 1
 		FROM Mostra
 		WHERE Nome = NEW.Mostra
-<<<<<<< HEAD
 		AND Tipo IS FALSE
-=======
-		AND Tipo != 1
->>>>>>> 2b8b66fd8b17d78a1c8254658fdc61cf5e5a9620
 	) THEN
 		RAISE EXCEPTION 'L''opera può essere esposta solo in mostre permanenti.';
 	END IF;

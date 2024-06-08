@@ -71,4 +71,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Procedura per 
+-- Procedura per licenziare un dipendente
+CREATE OR REPLACE PROCEDURE LicenziaDipendente(
+    IN p_CF VARCHAR(16),
+	IN p_descrizione TEXT
+)
+LANGUAGE SQL
+AS $$
+DECLARE
+    
+BEGIN
+    
+END;
+$$;
