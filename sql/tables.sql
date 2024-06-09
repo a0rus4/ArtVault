@@ -107,7 +107,7 @@ CREATE TABLE OperaInterna (
     Titolo VARCHAR(20),
     AnnoProduzione INT CHECK (AnnoProduzione >= -10000 AND AnnoProduzione <= EXTRACT(YEAR FROM CURRENT_DATE)),
     Provenienza VARCHAR(25),
-    Tipo VARCHAR(25),
+    Tipo VARCHAR(200),
     ID_Artista INT,
     Specializzazione VARCHAR(25),
     DataUltimoRestauro DATE,
@@ -122,7 +122,7 @@ CREATE TABLE OperaInterna (
 
 CREATE TABLE OperaEsterna (
     ID SERIAL PRIMARY KEY,
-    Titolo VARCHAR(20),
+    Titolo VARCHAR(200),
     AnnoProduzione INT CHECK (AnnoProduzione >= -10000 AND AnnoProduzione <= EXTRACT(YEAR FROM CURRENT_DATE)),
     Provenienza VARCHAR(25),
     Tipo VARCHAR(25),
