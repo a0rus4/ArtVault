@@ -9,21 +9,21 @@ CREATE TABLE Piano (
 );
 
 CREATE TABLE Laboratorio (
-    Specializzazione VARCHAR(255) PRIMARY KEY,
+    Specializzazione VARCHAR(25) PRIMARY KEY,
     Piano INT,
-    Nome VARCHAR(255),
+   Nome VARCHAR(20),
     FOREIGN KEY (Piano) REFERENCES Piano(Numero) ON DELETE SET NULL 
     -- Impediamo modifica del piano, ma non l'eliminazione
 );
 
 CREATE TABLE Direttore (
     CF CHAR(16) PRIMARY KEY,
-    Nome VARCHAR(255),
-    Cognome VARCHAR(255),
-    Telefono VARCHAR(20),
-    Email VARCHAR(255),
+   Nome VARCHAR(20),
+    Cognome VARCHAR(20),
+    Telefono VARCHAR(9),
+    Email VARCHAR(40),
     Retribuzione DECIMAL(10,2),
-    Qualifica VARCHAR(255),
+    Qualifica VARCHAR(25),
     DataAssunzione DATE,
     DataLicenziamento DATE,
     CHECK (DataLicenziamento IS NULL OR DataAssunzione < DataLicenziamento)
@@ -31,12 +31,12 @@ CREATE TABLE Direttore (
 
 CREATE TABLE Curatore (
     CF CHAR(16) PRIMARY KEY,
-    Nome VARCHAR(255),
-    Cognome VARCHAR(255),
-    Telefono VARCHAR(20),
-    Email VARCHAR(255),
+   Nome VARCHAR(20),
+    Cognome VARCHAR(20),
+    Telefono VARCHAR(9),
+    Email VARCHAR(40),
     Retribuzione DECIMAL(10,2),
-    Qualifica VARCHAR(255),
+    Qualifica VARCHAR(25),
     DataAssunzione DATE,
     DataLicenziamento DATE,
     CHECK (DataLicenziamento IS NULL OR DataAssunzione < DataLicenziamento)
@@ -44,13 +44,13 @@ CREATE TABLE Curatore (
 
 CREATE TABLE Restauratore (
     CF CHAR(16) PRIMARY KEY,
-    Nome VARCHAR(255),
-    Cognome VARCHAR(255),
-    Telefono VARCHAR(20),
-    Email VARCHAR(255),
+   Nome VARCHAR(20),
+    Cognome VARCHAR(20),
+    Telefono VARCHAR(9),
+    Email VARCHAR(40),
     Retribuzione DECIMAL(10,2),
-    Qualifica VARCHAR(255),
-    Specializzazione VARCHAR(255),
+    Qualifica VARCHAR(25),
+    Specializzazione VARCHAR(25),
     NumeroRestauri INT,
     DataAssunzione DATE,
     DataLicenziamento DATE,
@@ -59,12 +59,12 @@ CREATE TABLE Restauratore (
 
 CREATE TABLE Registrar (
     CF CHAR(16) PRIMARY KEY,
-    Nome VARCHAR(255),
-    Cognome VARCHAR(255),
-    Telefono VARCHAR(20),
-    Email VARCHAR(255),
+   Nome VARCHAR(20),
+    Cognome VARCHAR(20),
+    Telefono VARCHAR(9),
+    Email VARCHAR(40),
     Retribuzione DECIMAL(10,2),
-    Qualifica VARCHAR(255),
+    Qualifica VARCHAR(25),
     DataAssunzione DATE,
     DataLicenziamento DATE,
     CHECK (DataLicenziamento IS NULL OR DataAssunzione < DataLicenziamento)
@@ -74,7 +74,7 @@ CREATE TABLE Registrar (
 -- Stato = 1 se è attualemente esposta | Stato = 0 se non è attualmente esposta
 -- (per le mostre temporanee, ci dicono a grandi linee quanta probabilità c'è che avverrà una sua edizione a breve)
 CREATE TABLE Mostra (
-    Nome VARCHAR(255) PRIMARY KEY,
+    Nome VARCHAR(20) PRIMARY KEY,
     Prezzo DECIMAL(4,2),
     Descrizione TEXT,
     VotoMedio DECIMAL(2,1),
@@ -86,7 +86,7 @@ CREATE TABLE Mostra (
 
 CREATE TABLE MostraTemporanea (
     ID SERIAL PRIMARY KEY,
-    Nome VARCHAR(255),
+    Nome VARCHAR(20),
     DataInizio DATE,
     DataFine DATE,
     FOREIGN KEY (Nome) REFERENCES Mostra(Nome),
@@ -95,23 +95,23 @@ CREATE TABLE MostraTemporanea (
 
 CREATE TABLE Artista (
     ID SERIAL PRIMARY KEY,
-    Nome VARCHAR(255),
-    Cognome VARCHAR(255),
+   Nome VARCHAR(20),
+    Cognome VARCHAR(20),
     Biografia TEXT
 );
 
 -- Ricreazione delle tabelle con AnnoProduzione al posto di DataProduzione
 CREATE TABLE OperaInterna (
     ID SERIAL PRIMARY KEY,
-    Mostra VARCHAR(255),
-    Titolo VARCHAR(255),
+    Mostra VARCHAR(20),
+    Titolo VARCHAR(20),
     AnnoProduzione INT CHECK (AnnoProduzione >= -10000 AND AnnoProduzione <= EXTRACT(YEAR FROM CURRENT_DATE)),
-    Provenienza VARCHAR(255),
-    Tipo VARCHAR(255),
+    Provenienza VARCHAR(25),
+    Tipo VARCHAR(25),
     ID_Artista INT,
-    Specializzazione VARCHAR(255),
+    Specializzazione VARCHAR(25),
     DataUltimoRestauro DATE,
-	MostraPrecedente VARCHAR(255),
+	MostraPrecedente VARCHAR(20),
     FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON DELETE SET NULL ON UPDATE CASCADE,
 	FOREIGN KEY (MostraPrecedente) REFERENCES Mostra(Nome) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (ID_Artista) REFERENCES Artista(ID)
@@ -122,10 +122,10 @@ CREATE TABLE OperaInterna (
 
 CREATE TABLE OperaEsterna (
     ID SERIAL PRIMARY KEY,
-    Titolo VARCHAR(255),
+    Titolo VARCHAR(20),
     AnnoProduzione INT CHECK (AnnoProduzione >= -10000 AND AnnoProduzione <= EXTRACT(YEAR FROM CURRENT_DATE)),
-    Provenienza VARCHAR(255),
-    Tipo VARCHAR(255),
+    Provenienza VARCHAR(25),
+    Tipo VARCHAR(25),
     ID_Artista INT,
     FOREIGN KEY (ID_Artista) REFERENCES Artista(ID)
     
@@ -136,7 +136,7 @@ CREATE TABLE Sala (
     Piano INT,
     Capienza INT,
     Tipo BOOLEAN,
-    Mostra VARCHAR(255),
+    Mostra VARCHAR(20),
     FOREIGN KEY (Piano) REFERENCES Piano(Numero) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON DELETE SET NULL ON UPDATE CASCADE
     --se si eliminano piano o mostra la sala continua ad esistere, se si aggiornano si aggioranno anche nella tabella sala
@@ -162,7 +162,7 @@ CREATE TABLE ComposizioneMostreTemporanee (
 CREATE TABLE Evento (
     Sala INT,
     Data DATE,
-    Nome VARCHAR(255),
+   Nome VARCHAR(20),
     Descrizione TEXT,
 	Direttore CHAR(16),
     PRIMARY KEY (Sala, Data),
@@ -240,10 +240,10 @@ CREATE TABLE Restauro (
 
 CREATE TABLE Ente (
     Telefono VARCHAR(20) PRIMARY KEY,
-    Nome VARCHAR(255),
-    Tipo VARCHAR(255),
-    Email VARCHAR(255) UNIQUE,
-    Indirizzo VARCHAR(255) UNIQUE
+   Nome VARCHAR(20),
+    Tipo VARCHAR(25),
+    Email VARCHAR(40) UNIQUE,
+    Indirizzo VARCHAR(25) UNIQUE
 );
 
 CREATE TABLE Prestito (
@@ -266,17 +266,17 @@ CREATE TABLE Prestito (
 );
 
 CREATE TABLE Visitatore (
-    Email VARCHAR(255) PRIMARY KEY,
-    Nome VARCHAR(255),
-    Cognome VARCHAR(255)
+    Email VARCHAR(40) PRIMARY KEY,
+    Nome VARCHAR(20),
+    Cognome VARCHAR(20)
 );
 
 CREATE TABLE Recensione (
     Timestamp TIMESTAMP PRIMARY KEY,
     Commento TEXT,
     Voto INT,
-    Visitatore VARCHAR(255),
-    Mostra VARCHAR(255),
+    Visitatore VARCHAR(20),
+    Mostra VARCHAR(20),
     FOREIGN KEY (Visitatore) REFERENCES Visitatore(Email) ON DELETE SET NULL ON UPDATE CASCADE,
     FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON DELETE CASCADE ON UPDATE CASCADE,
     CHECK (Voto BETWEEN 1 AND 5)
@@ -289,8 +289,8 @@ CREATE TABLE Biglietto (
     Audioguida BOOLEAN,
     Sconto INT,
     PrezzoTot DECIMAL(4,2),
-    Visitatore VARCHAR(255),
-    Mostra VARCHAR(255),
+    Visitatore VARCHAR(20),
+    Mostra VARCHAR(20),
     FOREIGN KEY (Visitatore) REFERENCES Visitatore(Email) ON DELETE CASCADE ON UPDATE CASCADE,
     FOREIGN KEY (Mostra) REFERENCES Mostra(Nome) ON UPDATE CASCADE,
 	CHECK (Sconto BETWEEN 0 AND 100)
