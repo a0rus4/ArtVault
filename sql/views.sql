@@ -1,7 +1,7 @@
 -- Vista sulle Mostre con informazioni sui Curatori ed il numero di Recensioni
 CREATE OR REPLACE VIEW MostreCuratoriRecensioni AS
 	SELECT
-		M.Nome AS NomeMostra,
+		M.Nome AS Mostra,
 		M.Prezzo,
 		M.Descrizione,
 		M.VotoMedio,
