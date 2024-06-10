@@ -327,20 +327,3 @@ INSERT INTO Recensione (Timestamp, Commento, Voto, Visitatore, Mostra) VALUES
 ('2024-01-10 22:00:00', 'Carino', 3, 'simone.barbieri@example.com', 'Realismo'),
 ('2024-02-10 23:00:00', 'Interessante', 4, 'laura.deluca@example.com', 'Astrattismo'),
 ('2024-03-10 12:00:00', 'Fantastico', 5, 'giulia.esposito@example.com', 'Arte Concettuale');
-
-INSERT INTO Biglietto (NumeroSeriale, GiornoValidità, Audioguida, Sconto, PrezzoTot, Visitatore, Mostra) VALUES
-('000000000000000', '2023-03-15', FALSE, 0, 10.00, 'laura.deluca@example.com', 'Impressionismo'),
-('000000000000001', '2023-02-15', FALSE, 0, 10.00, 'alice.bianchi@example.com', 'Impressionismo'),
-('000000000000002', '2023-01-15', TRUE, 0, 15.00, 'marco.rossi5@example.com', 'Rinascimento'),
-('000000000000003', '2023-04-15', FALSE, 0, 10.00, 'giulia.esposito@example.com', 'Impressionismo'),
-('000000000000004', '2023-05-15', FALSE, 0, 10.00, 'matteo.russo@example.com', 'Barocco'),
-('000000000000005', '2023-06-15', FALSE, 0, 10.00, 'sara.ferrari@example.com', 'Modernismo'),
-('000000000000006', '2023-07-15', FALSE, 0, 10.00, 'luca.martini@example.com', 'Impressionismo'),
-('000000000000007', '2023-03-15', FALSE, 0, 10.00, 'chiara.romano@example.com', 'Cubismo'),
-('000000000000008', '2023-09-15', FALSE, 0, 10.00, 'andrea.conti@example.com', 'Impressionismo'),
-('000000000000009', '2023-03-15', TRUE, 0, 15.00, 'elena.ricci@example.com', 'Impressionismo'),
-('000000000000010', '2023-04-15', FALSE, 0, 10.00, 'davide.moretti@example.com', 'Neoclassicismo'),
-('000000000000011', '2023-03-15', FALSE, 0, 10.00, 'martina.colombo@example.com', 'Gotico'),
-('000000000000012', '2023-02-15', FALSE, 0, 10.00, 'francesco.marino@example.com', 'Impressionismo'),
-('000000000000013', '2021-02-15', FALSE, 0, 9.00, 'alessia.greco@example.com', 'Art Nouveau'),
-('000000000000014', '2023-01-15', FALSE, 0, 7.00, 'simone.barbieri@example.com', 'Surrealismo');
