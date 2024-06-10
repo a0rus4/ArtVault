@@ -104,11 +104,6 @@ BEGIN
         RAISE EXCEPTION 'Impossibile esporre una mostra temporanea in una sala permanente.';
     END IF;
 	
-	-- Vieta la modifica di un opera esterna esposta in una mostra temporanea che è già avvenuta
-	IF (data_inizio < CURRENT_DATE) THEN
-		RAISE EXCEPTION 'Impossibile modificare le opere di una mostra temporanea già avvenuta';
-	END IF;
-	
 	-- Controlla sovrapposizione con altre mostre temporanee - stessa sala, stesso periodo
     IF EXISTS (
         SELECT 1 
@@ -334,11 +329,6 @@ BEGIN
         data_inizio_mostra_temporanea, data_fine_mostra_temporanea
     FROM MostraTemporanea
     WHERE ID = NEW.ID_MostraTemporanea;
-	
-	-- Impedire la modifica della sala di una mostra se è già avvenuta
-	IF (data_inizio_mostra_temporanea < CURRENT_DATE) THEN
-		RAISE EXCEPTION 'La sala non può essere modifcata se la mostra è già avvenuta'; 
-	END IF;
 
     -- Verifica se l'opera esterna ha un periodo di prestito che non coincide con il periodo di svolgimento della mostra temporanea
     IF EXISTS (
