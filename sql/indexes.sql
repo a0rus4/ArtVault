@@ -6,10 +6,10 @@ CREATE INDEX idx_operaI_TitoloB ON operainterna (Titolo);
 CREATE INDEX idx_operaE_TitoloB ON operaesterna (Titolo);
 
 /*Indice per biglietto*/
-CREATE INDEX idx_Biglietto_NumeroSerialeB ON Direttore  (NumeroSeriale);
+CREATE INDEX idx_Biglietto_NumeroSerialeB ON Biglietto  (NumeroSeriale);
 
 /*Indice per visitatori*/
-CREATE INDEX idx_Visitatori_emailB ON Biglietto (Email)
+CREATE INDEX idx_Visitatori_emailB ON Visitatpre (Email)
 
 
 /*Indice per opere interne */
