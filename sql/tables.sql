@@ -54,7 +54,7 @@ CREATE TABLE Restauratore (
     NumeroRestauri INT,
     DataAssunzione DATE,
     DataLicenziamento DATE,
-    CHECK (DataLicenziamento IS NULL OR DataAssunzione < DataLicenziamento)
+    CHECK (DataLicenziamento IS NULL OR DataAssunzione <= DataLicenziamento)
 );
 
 CREATE TABLE Registrar (

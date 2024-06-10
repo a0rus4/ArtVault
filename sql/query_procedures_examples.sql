@@ -1,14 +1,16 @@
 ---
 -- Procedure
 ----
-CALL LicenziaDipendenteOggi('BNCLRC85M01H501Z', 'Atti osceni in luogo di lavoro');
-SELECT CF, Timestamp, Descrizione, DataLicenziamento FROM RegistroModificheRestauratore JOIN Restauratore ON CF = Restauratore
+CALL LicenziaDipendenteOggi('BNCLRC85M01H501Z', 'Troppi ritardi');
+SELECT CF, Timestamp, Descrizione, DataAssunzione, DataLicenziamento FROM RegistroModificheRestauratore JOIN Restauratore ON CF = Restauratore
 	WHERE Restauratore = 'BNCLRC85M01H501Z';
 	
-CALL RiassumiDipendenteOggi('BNCLRC85M01H501Z', 'Atti osceni in luogo di lavoro falsi');
+
+CALL RiassumiDipendenteOggi('BNCLRC85M01H501Z', 'Buon curriculum');
 SELECT CF, Timestamp, Descrizione, DataLicenziamento FROM RegistroModificheRestauratore JOIN Restauratore ON CF = Restauratore
 	WHERE Restauratore = 'BNCLRC85M01H501Z';
 
+SELECT * FROM RegistroModificheRestauratore
 ---
 -- Query
 ---

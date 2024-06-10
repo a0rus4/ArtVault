@@ -102,7 +102,7 @@ BEGIN
 	EXECUTE v_query;
 	
 	v_ruolo := 'RegistroModifiche' || v_ruolo;
-	v_query = CONCAT('INSERT INTO ', v_ruolo, ' VALUES (''', CURRENT_TIMESTAMP, ' '', ''', 
+	v_query = CONCAT('INSERT INTO ', v_ruolo, ' VALUES (''', CURRENT_TIMESTAMP, ''', ''', 
 					 p_descrizione, ''', ''', p_CF, ''', ''', v_CF_direttore_attuale, ''');');
 	EXECUTE v_query;
 	
@@ -133,7 +133,7 @@ BEGIN
 	EXECUTE v_query;
 	
 	v_ruolo := 'RegistroModifiche' || v_ruolo;
-	v_query = CONCAT('INSERT INTO ', v_ruolo, ' VALUES (''', CURRENT_TIMESTAMP, ' '', ''', 
+	v_query = CONCAT('INSERT INTO ', v_ruolo, ' VALUES (''', CURRENT_TIMESTAMP, ''', ''', 
 					 p_descrizione, ''', ''', p_CF, ''', ''', v_CF_direttore_attuale, ''');');
 	EXECUTE v_query;
 	
