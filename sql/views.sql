@@ -1,5 +1,5 @@
 -- Vista sulle Mostre con informazioni sui Curatori ed il numero di Recensioni
-CREATE VIEW MostreCuratoriRecensioni AS
+CREATE OR REPLACE VIEW MostreCuratoriRecensioni AS
 	SELECT
 		M.Nome AS NomeMostra,
 		M.Prezzo,
@@ -15,7 +15,7 @@ CREATE VIEW MostreCuratoriRecensioni AS
 ;
 
 -- Vista sui Restauratori e le loro operazioni di Restauro
-CREATE VIEW RestauratoriRestauri AS
+CREATE OR REPLACE VIEW RestauratoriRestauri AS
 	SELECT
 		R.CF,
 		R.Nome,
@@ -31,7 +31,7 @@ CREATE VIEW RestauratoriRestauri AS
 ;
 
 -- Vista sui Prestiti con informazioni sugli Enti e i Registrar coinvolti
-CREATE VIEW PrestitiDettagliati AS
+CREATE OR REPLACE VIEW PrestitiDettagliati AS
 	SELECT
 		P.ID,
 		COALESCE(OI.Titolo, OE.Titolo) AS TitoloOpera,
@@ -50,7 +50,7 @@ CREATE VIEW PrestitiDettagliati AS
 ;
 
 -- Vista sui Biglietti venduti per Mostra con informaizoni sui Visitatori
-CREATE VIEW BigliettiMostraVisitatore AS
+CREATE OR REPLACE VIEW BigliettiMostraVisitatore AS
 	SELECT
 		B.NumeroSeriale,
 		B.GiornoValidità,
@@ -67,7 +67,7 @@ CREATE VIEW BigliettiMostraVisitatore AS
 ;
 
 -- Vista sulle Partecipazioni agli Eventi da parte dei dipendenti
-CREATE VIEW PartecipazioniEventi AS
+CREATE OR REPLACE VIEW PartecipazioniEventi AS
 	SELECT
 		E.Nome AS NomeEvento,
 		E.Data AS DataEvento,
@@ -97,7 +97,7 @@ CREATE VIEW PartecipazioniEventi AS
 ;
 
 -- Vista che mostra le informazioni di ogni dipendente
-CREATE VIEW Dipendenti AS
+CREATE OR REPLACE VIEW Dipendenti AS
 	SELECT
 		'Curatore' AS Ruolo,
 		C.CF, C.Nome, C.Cognome, C.Telefono, C.Email, C.Retribuzione,
@@ -122,3 +122,19 @@ CREATE VIEW Dipendenti AS
 			D.Qualifica, D.DataAssunzione, D.DataLicenziamento
 		FROM Direttore D
 ;
+
+-- Vista che mostra le informazioni dei registri delle modifiche di ogni dipendente
+CREATE OR REPLACE VIEW RegistroModificheDipendenti AS
+	SELECT
+		'Curatore' AS CF, C.TIMESTAMP, C.Descrizione, C.Direttore
+	FROM RegistroModificheCuratore C
+	UNION
+		SELECT
+			'Restauratore' AS CF, R.TIMESTAMP, R.Descrizione, R.Direttore
+		FROM RegistroModificheRestauratore R
+	UNION
+		SELECT
+			'Registrar' AS CF, Reg.TIMESTAMP, Reg.Descrizione, Reg.Direttore
+		FROM RegistroModificheCuratore Reg
+;
+

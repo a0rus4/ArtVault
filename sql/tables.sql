@@ -146,8 +146,8 @@ CREATE TABLE DisposizioneMostreTemporanee (
     ID_MostraTemporanea INT,
     Sala INT,
     PRIMARY KEY (ID_MostraTemporanea, Sala),
-    FOREIGN KEY (ID_MostraTemporanea) REFERENCES MostraTemporanea(ID),
-    FOREIGN KEY (Sala) REFERENCES Sala(ID) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (ID_MostraTemporanea) REFERENCES MostraTemporanea(ID), ON DELETE CASCADE,
+    FOREIGN KEY (Sala) REFERENCES Sala(ID)
     --se si elimina una sala si elimina la disposizione nella sal, se si modifica la sala si modifica anche nella disposizione
 );
 
@@ -155,8 +155,8 @@ CREATE TABLE ComposizioneMostreTemporanee (
     ID_MostraTemporanea INT,
     ID_OperaEsterna INT,
     PRIMARY KEY (ID_MostraTemporanea, ID_OperaEsterna),
-    FOREIGN KEY (ID_MostraTemporanea) REFERENCES MostraTemporanea(ID),
-    FOREIGN KEY (ID_OperaEsterna) REFERENCES OperaEsterna(ID)
+    FOREIGN KEY (ID_MostraTemporanea) REFERENCES MostraTemporanea(ID) ON DELETE CASCADE,
+    FOREIGN KEY (ID_OperaEsterna) REFERENCES OperaEsterna(ID) 
 );
 
 CREATE TABLE Evento (

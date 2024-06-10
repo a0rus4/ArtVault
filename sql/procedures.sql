@@ -1,17 +1,20 @@
--- Procedura che crea una mostra temporanea (nome, periodo, sala e opere)
+-- Procedura che crea una mostra temporanea (nome, periodo, sale e opere)
 CREATE OR REPLACE PROCEDURE CreaMostraTemporanea(
     IN p_NomeMostra VARCHAR(255),
     IN p_DescrizioneMostra TEXT,
     IN p_DataInizio DATE,
     IN p_DataFine DATE,
-	IN p_Sala INT,
+	IN p_Sale INT [],
     IN p_DescrizioneSala VARCHAR(255),
     IN p_Opere INT[]
 )
-LANGUAGE SQL
+LANGUAGE plpgsql
 AS $$
 DECLARE
     v_MostraID INT;
+	v_Sala INT;
+	v_OperaID INT;
+	i INT;
 BEGIN
     -- Inserimento dei dati nella tabella "Mostra"
     INSERT INTO Mostra (Nome, Descrizione, Tipo)
@@ -19,16 +22,21 @@ BEGIN
 
     -- Inserimento dei dati nella tabella "MostraTemporanea"
     INSERT INTO MostraTemporanea (Nome, DataInizio, DataFine)
-    VALUES (p_NomeMostra, p_DataInizio, p_DataFine),
+    VALUES (p_NomeMostra, p_DataInizio, p_DataFine)
 	RETURNING ID INTO v_MostraID;
 
     -- Inserimento dei dati nella tabella "DisposizioneMostreTemporanee"
-    INSERT INTO DisposizioneMostreTemporanee (ID_MostraTemporanea, Sala)
-    VALUES (v_MostraID, p_Sala);
+    FOR i IN 1 .. array_length(v_Sala, 1)
+	LOOP
+		v_Sala := p_Sale[i];
+		INSERT INTO DisposizioneMostreTemporanee (ID_MostraTemporanea, Sala)
+    	VALUES (v_MostraID, v_Sala);
+	END LOOP;
 
     -- Inserimento dei dati nella tabella "ComposizioneMostreTemporanee" per ogni opera nell'array
-    FOREACH v_OperaID IN ARRAY p_Opere
+    FOR i IN 1 .. array_length(v_OperaID, 1)
     LOOP
+		v_OperaID := p_Opere[i];
         INSERT INTO ComposizioneMostreTemporanee (ID_MostraTemporanea, ID_OperaEsterna)
         VALUES (v_MostraID, v_OperaID);
     END LOOP;
@@ -72,15 +80,63 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Procedura per licenziare un dipendente
-CREATE OR REPLACE PROCEDURE LicenziaDipendente(
+CREATE OR REPLACE PROCEDURE LicenziaDipendenteOggi(
     IN p_CF VARCHAR(16),
 	IN p_descrizione TEXT
 )
-LANGUAGE SQL
+LANGUAGE plpgsql
 AS $$
 DECLARE
-    
+     v_CF_direttore_attuale VARCHAR(16);
+	 v_ruolo VARCHAR(30);
+	 v_query TEXT;
 BEGIN
-    
+	-- Prende il direttore attuale
+	SELECT CF INTO v_CF_direttore_attuale FROM Direttore WHERE DataLicenziamento IS NULL;
+	
+	-- Prendiamo il ruolo del dipendente tramite la vista "Dipendenti"
+	SELECT Ruolo INTO v_ruolo FROM Dipendenti WHERE CF = p_CF;
+	
+	-- Eseguiamo query su una tabella che dipende dal nome del dipendente
+	v_query = CONCAT('UPDATE ', v_ruolo, ' SET DataLicenziamento = ''', CURRENT_DATE, ''' WHERE CF = ''', p_CF, ''';');
+	EXECUTE v_query;
+	
+	v_ruolo := 'RegistroModifiche' || v_ruolo;
+	v_query = CONCAT('INSERT INTO ', v_ruolo, ' VALUES (''', CURRENT_TIMESTAMP, ' '', ''', 
+					 p_descrizione, ''', ''', p_CF, ''', ''', v_CF_direttore_attuale, ''');');
+	EXECUTE v_query;
+	
 END;
 $$;
+
+-- Procedura per riassumere un dipendente
+CREATE OR REPLACE PROCEDURE RiassumiDipendenteOggi(
+    IN p_CF VARCHAR(16),
+	IN p_descrizione TEXT
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+     v_CF_direttore_attuale VARCHAR(16);
+	 v_ruolo VARCHAR(30);
+	 v_query TEXT;
+BEGIN
+	-- Prende il direttore attuale
+	SELECT CF INTO v_CF_direttore_attuale FROM Direttore WHERE DataLicenziamento IS NULL;
+	
+	-- Prendiamo il ruolo del dipendente tramite la vista "Dipendenti"
+	SELECT Ruolo INTO v_ruolo FROM Dipendenti WHERE CF = p_CF;
+	
+	-- Eseguiamo query su una tabella che dipende dal nome del dipendente
+	v_query = CONCAT('UPDATE ', v_ruolo, ' SET DataLicenziamento = NULL, DataAssunzione = ''', 
+					 CURRENT_DATE, ''' WHERE CF = ''', p_CF, ''';');
+	EXECUTE v_query;
+	
+	v_ruolo := 'RegistroModifiche' || v_ruolo;
+	v_query = CONCAT('INSERT INTO ', v_ruolo, ' VALUES (''', CURRENT_TIMESTAMP, ' '', ''', 
+					 p_descrizione, ''', ''', p_CF, ''', ''', v_CF_direttore_attuale, ''');');
+	EXECUTE v_query;
+	
+END;
+$$;
+
