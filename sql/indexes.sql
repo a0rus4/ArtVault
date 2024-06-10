@@ -6,7 +6,7 @@ CREATE INDEX idx_operaI_TitoloB ON operainterna (Titolo);
 CREATE INDEX idx_operaE_TitoloB ON operaesterna (Titolo);
 
 /*Indice per biglietto*/
-CREATE INDEX idx_Biglietti_NumeroSerialeB ON Direttore  (NumeroSeriale);
+CREATE INDEX idx_Biglietto_NumeroSerialeB ON Direttore  (NumeroSeriale);
 
 /*Indice per visitatori*/
 CREATE INDEX idx_Visitatori_emailB ON Visitatore (Email)
@@ -19,7 +19,7 @@ CREATE INDEX idx_operaI_TitoloH ON operainterna USING HASH (Titolo);
 CREATE INDEX idx_operaE_TitoloH ON operaesterna USING HASH (Titolo);
 
 /*Indice per biglietto*/
-CREATE INDEX idx_Biglietti_NumeroSerialeH ON Direttore USING HASH (NumeroSeriale);
+CREATE INDEX idx_Biglietto_NumeroSerialeH ON Direttore USING HASH (NumeroSeriale);
 
 /*Indice per visitatori*/
 CREATE INDEX idx_Visitatori_emailH ON Visitatore USING HASH (Email)
