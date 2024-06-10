@@ -146,7 +146,7 @@ CREATE TABLE DisposizioneMostreTemporanee (
     ID_MostraTemporanea INT,
     Sala INT,
     PRIMARY KEY (ID_MostraTemporanea, Sala),
-    FOREIGN KEY (ID_MostraTemporanea) REFERENCES MostraTemporanea(ID), ON DELETE CASCADE,
+    FOREIGN KEY (ID_MostraTemporanea) REFERENCES MostraTemporanea(ID) ON DELETE CASCADE,
     FOREIGN KEY (Sala) REFERENCES Sala(ID)
     --se si elimina una sala si elimina la disposizione nella sal, se si modifica la sala si modifica anche nella disposizione
 );
